@@ -4,9 +4,13 @@ import { ArrowLeft, Check } from 'lucide-react'
 import { Container } from '../primitives/Container'
 import { buttonVariants } from '../primitives/Button'
 import { cn } from '../../lib/utils'
+import { supabase } from '../../lib/supabase'
 
 type Mode = 'login' | 'signup'
 type Method = 'phone' | 'email'
+
+/** Indian mobile numbers, matching the mobile app's e.164 formatting. */
+const e164 = (phone: string) => `+91${phone}`
 
 const COPY = {
   login: {
@@ -40,22 +44,43 @@ export function AuthScreen({ mode }: { mode: Mode }) {
   const [email, setEmail] = useState('')
   const [sending, setSending] = useState(false)
   const [verified, setVerified] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const phoneValid = phone.length === 10 && /^[6-9]/.test(phone)
   const emailValid = emailPattern.test(email.trim())
   const valid = method === 'phone' ? phoneValid : emailValid
   const contactDisplay = method === 'phone' ? `+91 ${phone}` : email.trim()
 
-  function sendCode(e: FormEvent) {
+  /** Request a one-time code via Supabase (same project as the mobile app). */
+  async function sendCode(e: FormEvent) {
     e.preventDefault()
     if (!valid || sending) return
     setSending(true)
-    // No web auth backend yet — the real OTP flow lives in the QYNE app.
-    console.info(`[QYNE] ${mode} OTP request:`, { method, contact: method === 'phone' ? phone : email.trim() })
-    setTimeout(() => {
-      setSending(false)
-      setStep('otp')
-    }, 700)
+    setError(null)
+    const { error: err } =
+      method === 'phone'
+        ? await supabase.auth.signInWithOtp({ phone: e164(phone) })
+        : await supabase.auth.signInWithOtp({
+            email: email.trim(),
+            options: { shouldCreateUser: true },
+          })
+    setSending(false)
+    if (err) {
+      setError(err.message)
+      return
+    }
+    setStep('otp')
+  }
+
+  /** Verify the entered code; resolves true when a session is established. */
+  async function verifyCode(code: string): Promise<boolean> {
+    const { data, error: err } = await supabase.auth.verifyOtp(
+      method === 'phone'
+        ? { phone: e164(phone), token: code, type: 'sms' }
+        : { email: email.trim(), token: code, type: 'email' },
+    )
+    if (err) throw new Error(err.message)
+    return data.session != null
   }
 
   return (
@@ -69,8 +94,12 @@ export function AuthScreen({ mode }: { mode: Mode }) {
             ) : step === 'otp' ? (
               <OtpStep
                 contactDisplay={contactDisplay}
-                onBack={() => setStep('contact')}
+                onBack={() => {
+                  setError(null)
+                  setStep('contact')
+                }}
                 onResend={sendCode}
+                onVerify={verifyCode}
                 onVerified={() => setVerified(true)}
               />
             ) : (
@@ -126,6 +155,12 @@ export function AuthScreen({ mode }: { mode: Mode }) {
                       'Continue'
                     )}
                   </button>
+
+                  {error && (
+                    <p role="alert" className="-mt-2 text-center text-[13px] text-danger">
+                      {error}
+                    </p>
+                  )}
                 </form>
 
                 <p className="mt-6 text-center text-[14px] text-muted">
@@ -177,15 +212,18 @@ function OtpStep({
   contactDisplay,
   onBack,
   onResend,
+  onVerify,
   onVerified,
 }: {
   contactDisplay: string
   onBack: () => void
   onResend: (e: FormEvent) => void
+  onVerify: (code: string) => Promise<boolean>
   onVerified: () => void
 }) {
   const [digits, setDigits] = useState<string[]>(Array(OTP_LENGTH).fill(''))
   const [verifying, setVerifying] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [seconds, setSeconds] = useState(RESEND_SECONDS)
   const inputs = useRef<(HTMLInputElement | null)[]>([])
 
@@ -199,11 +237,23 @@ function OtpStep({
     return () => clearTimeout(t)
   }, [seconds])
 
-  function verify(full: string) {
+  async function verify(full: string) {
     setVerifying(true)
-    // No web auth backend yet — accept any complete code for the preview flow.
-    console.info('[QYNE] OTP verify:', full)
-    setTimeout(onVerified, 700)
+    setError(null)
+    try {
+      const ok = await onVerify(full)
+      if (ok) {
+        onVerified()
+        return
+      }
+      setError('That code didn’t work. Try again.')
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Verification failed. Try again.')
+    }
+    // On failure, clear the entry so the athlete can re-type.
+    setVerifying(false)
+    setDigits(Array(OTP_LENGTH).fill(''))
+    inputs.current[0]?.focus()
   }
 
   function setAt(i: number, v: string) {
@@ -274,12 +324,16 @@ function OtpStep({
       </div>
 
       <div className="mt-4 h-5 text-center">
-        {verifying && (
+        {verifying ? (
           <span className="inline-flex items-center gap-2 text-[13px] text-muted">
             <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-muted/30 border-t-muted" />
             Verifying…
           </span>
-        )}
+        ) : error ? (
+          <span role="alert" className="text-[13px] text-danger">
+            {error}
+          </span>
+        ) : null}
       </div>
 
       <div className="mt-2 text-center text-[14px]">
