@@ -1,0 +1,59 @@
+# Deploy the SPA to staging: build, sync to S3, invalidate CloudFront.
+# Auth is keyless via GitHub OIDC assuming the app deploy role. Triggers on push
+# to develop (already CI-verified via branch protection).
+#
+# Required repo VARIABLES (Settings → Secrets and variables → Actions → Variables),
+# filled from the qyne-infra `cdk deploy` outputs after Phase 1a:
+#   AWS_DEPLOY_ROLE_ARN     — the AppDeployRoleArn output
+#   WEB_BUCKET              — the WebBucketName output
+#   WEB_DISTRIBUTION_ID     — the web CloudFront distribution id
+#   VITE_SUPABASE_URL       — Supabase project URL (public)
+#   VITE_SUPABASE_ANON_KEY  — Supabase anon/publishable key (public by design)
+# The job no-ops until AWS_DEPLOY_ROLE_ARN is set, so it won't fail red before then.
+name: deploy-staging
+
+on:
+  push:
+    branches: [develop]
+
+permissions:
+  id-token: write # OIDC
+  contents: read
+
+concurrency:
+  group: deploy-web-staging
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    if: ${{ vars.AWS_DEPLOY_ROLE_ARN != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build
+        env:
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
+        run: npm run build
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ap-south-1
+
+      - name: Sync to S3
+        run: aws s3 sync dist "s3://${{ vars.WEB_BUCKET }}" --delete
+
+      - name: Invalidate CloudFront
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id "${{ vars.WEB_DISTRIBUTION_ID }}" \
+            --paths "/*"
