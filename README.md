@@ -36,9 +36,19 @@ npm run preview # serve the production build locally
 npm run lint    # eslint
 ```
 
-There are currently **no environment variables** — the site is fully static.
-`@supabase/supabase-js` is present as a dependency for the planned auth flow, but
-is **not wired up yet**: the Login and Signup pages are UI only.
+### Environment
+
+The auth flow needs the Supabase project (the **same** one the mobile app uses).
+Copy `.env.example` → `.env` and fill in:
+
+| Variable | Purpose |
+|---|---|
+| `VITE_SUPABASE_URL` | Supabase project URL |
+| `VITE_SUPABASE_ANON_KEY` | Supabase anon/public key |
+
+Vite only exposes vars prefixed `VITE_` to the client. `.env` is gitignored;
+`.env.example` is tracked. The rest of the marketing site is static and needs no
+env.
 
 ---
 
@@ -66,7 +76,7 @@ src/
 | Audience | `ForAthletes`, `ForAcademies` |
 | Company | `About`, `Support` |
 | Legal | `Privacy`, `Terms`, `Security` |
-| Auth (UI only) | `Login`, `Signup` |
+| Auth (Supabase OTP) | `Login`, `Signup` |
 | Fallback | `NotFound` |
 
 ### Styling
