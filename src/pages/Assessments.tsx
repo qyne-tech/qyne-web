@@ -1,5 +1,6 @@
 import { Fragment } from 'react'
 import { Link } from 'react-router-dom'
+import { appUrl } from '../lib/site'
 import type { LucideIcon } from 'lucide-react'
 import { Video, ScanLine, BarChart3, BrainCircuit, ChevronRight } from 'lucide-react'
 import { Section } from '../components/primitives/Container'
@@ -34,9 +35,9 @@ export default function AssessmentsPage() {
         subtitle="Advanced performance assessments with real, objective metrics — no force plates, no lab. Every test feeds straight into the periodization engine, so your plan is built on data, not guesswork."
       >
         <div className="mt-9 flex flex-wrap gap-3">
-          <Link to="/signup" className={cn(buttonVariants({ size: 'lg' }))}>
+          <a href={appUrl('/signup')} className={cn(buttonVariants({ size: 'lg' }))}>
             Get started
-          </Link>
+          </a>
           <Link
             to="/how-it-works"
             className={cn(buttonVariants({ variant: 'secondary', size: 'lg' }))}

@@ -1,10 +1,13 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-  /** Supabase project URL (same project as the mobile app). */
-  readonly VITE_SUPABASE_URL: string
-  /** Supabase anon/public key. */
-  readonly VITE_SUPABASE_ANON_KEY: string
+  /**
+   * Base URL of the QYNE app (the post-login dashboard) for the Log in / Sign up
+   * hand-off. Optional — defaults are derived from the host (see `appUrl`). Set
+   * in production, e.g. https://app.qyne.one. The marketing site itself makes no
+   * backend or Supabase calls, so no other env is needed.
+   */
+  readonly VITE_APP_URL?: string
 }
 
 interface ImportMeta {

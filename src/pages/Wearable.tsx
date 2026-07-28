@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { appUrl } from '../lib/site'
 import { buttonVariants } from '../components/primitives/Button'
 import { PageIntro } from '../components/sections/PageIntro'
 import { PlatformData } from '../components/sections/PlatformData'
@@ -29,9 +30,9 @@ export default function WearablePage() {
         subtitle="QYNE turns the wearable you already own into training intelligence — and if you don’t have one, the screenless QYNE band measures everything that matters."
       >
         <div className="mt-9 flex flex-wrap gap-3">
-          <Link to="/signup" className={cn(buttonVariants({ size: 'lg' }))}>
+          <a href={appUrl('/signup')} className={cn(buttonVariants({ size: 'lg' }))}>
             Get started
-          </Link>
+          </a>
           <Link
             to="/how-it-works"
             className={cn(buttonVariants({ variant: 'secondary', size: 'lg' }))}
