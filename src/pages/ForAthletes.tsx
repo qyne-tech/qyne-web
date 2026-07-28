@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { appUrl } from '../lib/site'
 import type { LucideIcon } from 'lucide-react'
 import { Gauge, Smartphone, BrainCircuit, Target, Moon, ShieldCheck } from 'lucide-react'
 import { Section } from '../components/primitives/Container'
@@ -58,9 +59,9 @@ export default function ForAthletes() {
         subtitle="The intelligence pro setups take for granted — readiness, testing, periodization and recovery — in your pocket, built for cricket."
       >
         <div className="mt-9 flex flex-wrap gap-3">
-          <Link to="/signup" className={cn(buttonVariants({ size: 'lg' }))}>
+          <a href={appUrl('/signup')} className={cn(buttonVariants({ size: 'lg' }))}>
             Get started
-          </Link>
+          </a>
           <Link to="/how-it-works" className={cn(buttonVariants({ variant: 'secondary', size: 'lg' }))}>
             See how it works
           </Link>

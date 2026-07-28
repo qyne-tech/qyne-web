@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
-import { Link, NavLink, useLocation } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Menu, X } from 'lucide-react'
 import { Logo } from '../primitives/Logo'
 import { buttonVariants } from '../primitives/Button'
-import { NAV_LINKS } from '../../lib/site'
+import { NAV_LINKS, appUrl } from '../../lib/site'
 import { cn } from '../../lib/utils'
 import { EASE } from '../animations/ScrollReveal'
 
@@ -67,18 +67,18 @@ export function Nav() {
         </div>
 
         <div className="flex items-center gap-2">
-          <Link
-            to="/login"
+          <a
+            href={appUrl('/login')}
             className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'hidden lg:inline-flex')}
           >
             Log in
-          </Link>
-          <Link
-            to="/signup"
+          </a>
+          <a
+            href={appUrl('/signup')}
             className={cn(buttonVariants({ size: 'sm' }), 'hidden lg:inline-flex')}
           >
             Sign up
-          </Link>
+          </a>
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}
@@ -117,18 +117,18 @@ export function Nav() {
                   {link.label}
                 </NavLink>
               ))}
-              <Link
-                to="/login"
+              <a
+                href={appUrl('/login')}
                 className={cn(buttonVariants({ variant: 'secondary', size: 'lg' }), 'mt-2 w-full')}
               >
                 Log in
-              </Link>
-              <Link
-                to="/signup"
+              </a>
+              <a
+                href={appUrl('/signup')}
                 className={cn(buttonVariants({ size: 'lg' }), 'w-full')}
               >
                 Sign up
-              </Link>
+              </a>
             </div>
           </motion.div>
         )}

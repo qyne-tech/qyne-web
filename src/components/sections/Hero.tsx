@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { motion, type Variants } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
+import { appUrl } from '../../lib/site'
 import { Container } from '../primitives/Container'
 import { buttonVariants } from '../primitives/Button'
 import { StoreBadge } from '../primitives/StoreBadge'
@@ -59,9 +60,9 @@ export function Hero() {
             </motion.p>
 
             <motion.div variants={item} className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
-              <Link to="/signup" className={buttonVariants({ size: 'lg' })}>
+              <a href={appUrl('/signup')} className={buttonVariants({ size: 'lg' })}>
                 Get started
-              </Link>
+              </a>
               <Link
                 to="/how-it-works"
                 className="group inline-flex items-center gap-1.5 text-sm font-medium text-muted transition-colors hover:text-ink"

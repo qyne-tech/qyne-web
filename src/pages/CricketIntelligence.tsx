@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { appUrl } from '../lib/site'
 import { buttonVariants } from '../components/primitives/Button'
 import { PageIntro } from '../components/sections/PageIntro'
 import { SportGrid } from '../components/sections/SportGrid'
@@ -29,9 +30,9 @@ export default function CricketIntelligencePage() {
         subtitle="Sport-specific. Expert-built. Video-powered. A single phone video becomes objective skill data — all feeding one periodized plan. Cricket is live now as Phase 1, with more sports rolling out."
       >
         <div className="mt-9 flex flex-wrap gap-3">
-          <Link to="/signup" className={cn(buttonVariants({ size: 'lg' }))}>
+          <a href={appUrl('/signup')} className={cn(buttonVariants({ size: 'lg' }))}>
             Get started
-          </Link>
+          </a>
           <Link
             to="/how-it-works"
             className={cn(buttonVariants({ variant: 'secondary', size: 'lg' }))}
