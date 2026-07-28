@@ -6,7 +6,7 @@ The authoritative standards are the QYNE org docs — read them first and follow
 - Cross-agent rules: https://github.com/qyne-tech/.github/blob/main/AGENTS.md
 
 Single source of truth for naming, functions, modules, errors, tests, security, git,
-commit identity (`qyne-dev <support@qyne.one>`), and PRs (a human maintainer merges — agents never merge).
+commit identity (your own org `@qyne.one` account), and PRs (a human maintainer merges — agents never merge).
 Do not restate them here.
 
 ## Repo-specific rules (qyne-web — marketing site)
