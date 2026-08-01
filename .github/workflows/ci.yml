@@ -21,6 +21,26 @@ jobs:
       - name: Install
         run: npm ci
 
+      # The colour tokens in src/styles/theme.css are generated from the design
+      # kit in qyne-app (packages/tokens/src/palettes.ts) — the same values the
+      # native and product-web apps use. This fails the build if the two drift.
+      #
+      # Reading a second private repo needs a token the default GITHUB_TOKEN
+      # can't provide, so the check no-ops (with a warning) until the
+      # ORG_READ_TOKEN secret is set. See CONTRIBUTING.md.
+      - name: Design tokens in sync with the kit
+        env:
+          ORG_READ_TOKEN: ${{ secrets.ORG_READ_TOKEN }}
+        run: |
+          if [ -z "$ORG_READ_TOKEN" ]; then
+            echo "::warning::ORG_READ_TOKEN is not set — skipping the design-token drift check."
+            exit 0
+          fi
+          git clone --depth 1 --branch develop --filter=blob:none --sparse \
+            "https://x-access-token:${ORG_READ_TOKEN}@github.com/qyne-tech/qyne-app.git" .qyne-app
+          git -C .qyne-app sparse-checkout set packages/tokens
+          QYNE_APP_PATH="$PWD/.qyne-app" npm run tokens:check
+
       # Non-blocking for now: the repo has a few pre-existing lint errors
       # (Nav.tsx, Button.tsx). Fix those, then drop continue-on-error to make
       # lint a required gate.
