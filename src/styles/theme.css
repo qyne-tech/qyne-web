@@ -21,29 +21,34 @@
 
 @theme {
   /* --------------------------------------------------------------------------
-     1. COLOR — dark, near-monochrome with a single recovery-green accent.
-     Contrast ratios are quoted against --color-bg (#0a0e13) for AA awareness.
+     1. COLOR — dark, near-monochrome with a single recovery-lime accent.
+
+     These values are NOT maintained here. They come from the QYNE design kit
+     (Urmi's Figma tokens), which lives in qyne-app at
+     packages/tokens/src/palettes.ts and is shared by the native app and the
+     product web app. Run `npm run tokens:sync` to pull changes down; CI runs
+     `npm run tokens:check` and fails if this block drifts from the kit.
+
+     Contrast ratios are computed against --color-bg by the sync script.
      -------------------------------------------------------------------------- */
 
-  /* Surfaces — stacked from deepest background to raised cards. */
-  --color-bg: #0a0e13; /* page background (deepest)            */
-  --color-surface: #11161e; /* cards, panels                        */
-  --color-surface-2: #161d27; /* raised / inset elements, inputs      */
-  --color-border: #1f2731; /* hairline borders, dividers, grid     */
-
-  /* Text — three tiers of emphasis. */
-  --color-ink: #e8ecef; /* primary text        — ~14:1 (AAA)    */
-  --color-muted: #8a949d; /* secondary text      — ~5.4:1 (AA)    */
-  --color-faint: #6b747e; /* tertiary / labels   — ~3.6:1 (AA Large / UI only — avoid long body copy) */
-
-  /* Brand + semantic — each maps to a physiological meaning. */
-  --color-primary: #5dcaa5; /* recovery / ready / "go"              */
-  --color-primary-light: #9fe1cb; /* primary hover / emphasis             */
-  --color-primary-bg: #0d2219; /* tinted background behind primary     */
-  --color-warning: #fac775; /* caution / moderate load              */
-  --color-danger: #e24b4a; /* risk / overload / "stop"             */
-  --color-info: #85b7eb; /* analytical / neutral data            */
-  --color-accent: #afa9ec; /* sleep / biometric / secondary accent */
+  /* >>> tokens:sync — generated from qyne-app palettes.ts, do not edit by hand */
+  /* Source: qyne-app packages/tokens/src/palettes.ts (dark). Run `npm run tokens:sync`. */
+  --color-bg: #0b0e11; /* page background (deepest) */
+  --color-surface: #12161b; /* cards, panels */
+  --color-surface-2: #1b2027; /* raised / inset elements, inputs */
+  --color-border: #242a31; /* hairline borders, dividers, grid */
+  --color-ink: #f5f7fa; /* primary text — 18.0:1 on --color-bg */
+  --color-muted: #a7b0bc; /* secondary text — 8.8:1 on --color-bg */
+  --color-faint: #6b7480; /* tertiary / labels — 4.1:1 on --color-bg */
+  --color-primary: #9fe02f; /* recovery / ready / "go" */
+  --color-primary-light: #d5fa5b; /* primary hover / emphasis */
+  --color-primary-bg: #18220a; /* tinted background behind primary */
+  --color-warning: #f5b84e; /* caution / moderate load */
+  --color-danger: #f0553f; /* risk / overload / "stop" */
+  --color-info: #5b7cfa; /* analytical / neutral data */
+  --color-accent: #a78bfa; /* sleep / biometric / secondary accent */
+  /* <<< tokens:sync */
 
   /* --------------------------------------------------------------------------
      2. TYPOGRAPHY
