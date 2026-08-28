@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom'
+import { appUrl } from '../lib/site'
 import { buttonVariants } from '../components/primitives/Button'
 import { PageIntro } from '../components/sections/PageIntro'
 import { PlatformData } from '../components/sections/PlatformData'
 import { Wearable as QYNEBand } from '../components/sections/Wearable'
+import { MotionIntelligence } from '../components/sections/MotionIntelligence'
 import { CTA } from '../components/sections/CTA'
 import { Seo } from '../components/primitives/Seo'
 import { cn } from '../lib/utils'
@@ -12,7 +14,8 @@ import { cn } from '../lib/utils'
  *   1. PageIntro — what the wearable layer is
  *   2. PlatformData — how the flow works, then the bands we connect to
  *   3. QYNEBand — for athletes without a wearable, the QYNE band + its sensors
- *   4. CTA
+ *   4. MotionIntelligence — the QYNE GPS pod, for what the body does in motion
+ *   5. CTA
  */
 export default function WearablePage() {
   return (
@@ -29,9 +32,9 @@ export default function WearablePage() {
         subtitle="QYNE turns the wearable you already own into training intelligence — and if you don’t have one, the screenless QYNE band measures everything that matters."
       >
         <div className="mt-9 flex flex-wrap gap-3">
-          <Link to="/signup" className={cn(buttonVariants({ size: 'lg' }))}>
+          <a href={appUrl('/signup')} className={cn(buttonVariants({ size: 'lg' }))}>
             Get started
-          </Link>
+          </a>
           <Link
             to="/how-it-works"
             className={cn(buttonVariants({ variant: 'secondary', size: 'lg' }))}
@@ -46,6 +49,9 @@ export default function WearablePage() {
 
       {/* The QYNE band, for athletes who don't already own a wearable */}
       <QYNEBand />
+
+      {/* Our own GPS + IMU module — the on-field half of the picture */}
+      <MotionIntelligence />
 
       <CTA />
     </>

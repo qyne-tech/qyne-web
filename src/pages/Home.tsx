@@ -1,6 +1,7 @@
 import { Hero } from '../components/sections/Hero'
 import { Problem } from '../components/sections/Problem'
 import { WearableSummary } from '../components/sections/WearableSummary'
+import { MotionIntelligence } from '../components/sections/MotionIntelligence'
 import { HealthTrends } from '../components/sections/HealthTrends'
 import { PeriodizationEngine } from '../components/sections/PeriodizationEngine'
 import { AssessmentsSummary } from '../components/sections/AssessmentsSummary'
@@ -28,6 +29,7 @@ export default function Home() {
       <Hero />
       <Problem />
       <WearableSummary />
+      <MotionIntelligence />
       <HealthTrends />
       <AssessmentsSummary />
       <PeriodizationEngine />

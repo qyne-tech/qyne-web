@@ -17,6 +17,30 @@ export const SITE = {
   email: 'support@qyne.one',
 } as const
 
+/**
+ * URL of the QYNE app — the post-login dashboard, a SEPARATE deployment at
+ * `app.<domain>`. This marketing site never authenticates and makes no backend
+ * calls; "Log in" / "Sign up" hand off to the app, which owns the real OTP flow.
+ *
+ * Resolution order:
+ *   1. `VITE_APP_URL` build var (set this in production, e.g. https://app.qyne.one).
+ *   2. Derived from the current host for any `*.qyne.one` origin
+ *      (staging.qyne.one → app.staging.qyne.one, qyne.one → app.qyne.one).
+ *   3. Staging app, as a safe default for local dev and preview builds.
+ */
+export function appUrl(path = ''): string {
+  const configured = (import.meta.env.VITE_APP_URL as string | undefined)?.replace(/\/+$/, '')
+  if (configured) return configured + path
+
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname
+    if (host === 'qyne.one' || host.endsWith('.qyne.one')) {
+      return `https://app.${host.replace(/^app\./, '')}${path}`
+    }
+  }
+  return `https://app.staging.qyne.one${path}`
+}
+
 /** Primary navigation — used by Nav and the demo CTA. */
 export const NAV_LINKS = [
   { label: 'How it works', href: '/how-it-works' },

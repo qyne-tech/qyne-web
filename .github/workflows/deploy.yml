@@ -1,0 +1,54 @@
+# Deploy the SPA: build, sync to S3, invalidate CloudFront.
+#   develop → staging   (vars: AWS_DEPLOY_ROLE_ARN, WEB_BUCKET, WEB_DISTRIBUTION_ID,
+#                        VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY)
+#   main    → production (same names, PROD_ prefixed)
+# Keyless via GitHub OIDC. Each job no-ops until its branch's role var is set.
+name: deploy
+
+on:
+  push:
+    branches: [develop, main]
+
+permissions:
+  id-token: write # OIDC
+  contents: read
+
+concurrency:
+  group: deploy-web-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    if: >-
+      ${{ (github.ref_name == 'develop' && vars.AWS_DEPLOY_ROLE_ARN != '')
+        || (github.ref_name == 'main' && vars.PROD_AWS_DEPLOY_ROLE_ARN != '') }}
+    runs-on: ubuntu-latest
+    env:
+      ROLE: ${{ github.ref_name == 'main' && vars.PROD_AWS_DEPLOY_ROLE_ARN || vars.AWS_DEPLOY_ROLE_ARN }}
+      BUCKET: ${{ github.ref_name == 'main' && vars.PROD_WEB_BUCKET || vars.WEB_BUCKET }}
+      DIST: ${{ github.ref_name == 'main' && vars.PROD_WEB_DISTRIBUTION_ID || vars.WEB_DISTRIBUTION_ID }}
+      VITE_SUPABASE_URL: ${{ github.ref_name == 'main' && vars.PROD_VITE_SUPABASE_URL || vars.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_ANON_KEY: ${{ github.ref_name == 'main' && vars.PROD_VITE_SUPABASE_ANON_KEY || vars.VITE_SUPABASE_ANON_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build
+        run: npm run build # VITE_SUPABASE_* come from the job env above
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.ROLE }}
+          aws-region: ap-south-1
+
+      - name: Sync to S3
+        run: aws s3 sync dist "s3://$BUCKET" --delete
+
+      - name: Invalidate CloudFront
+        run: aws cloudfront create-invalidation --distribution-id "$DIST" --paths "/*"

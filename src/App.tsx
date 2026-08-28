@@ -17,8 +17,6 @@ const Performance = lazy(() => import('./pages/Performance'))
 const ExerciseLibrary = lazy(() => import('./pages/ExerciseLibrary'))
 const ForAcademies = lazy(() => import('./pages/ForAcademies'))
 const ForAthletes = lazy(() => import('./pages/ForAthletes'))
-const Login = lazy(() => import('./pages/Login'))
-const Signup = lazy(() => import('./pages/Signup'))
 const About = lazy(() => import('./pages/About'))
 const Support = lazy(() => import('./pages/Support'))
 const Terms = lazy(() => import('./pages/Terms'))
@@ -40,8 +38,6 @@ export default function App() {
         <Route path="exercise-library" element={<ExerciseLibrary />} />
         <Route path="for-academies" element={<ForAcademies />} />
         <Route path="for-athletes" element={<ForAthletes />} />
-        <Route path="login" element={<Login />} />
-        <Route path="signup" element={<Signup />} />
         <Route path="about" element={<About />} />
         <Route path="support" element={<Support />} />
         <Route path="terms" element={<Terms />} />

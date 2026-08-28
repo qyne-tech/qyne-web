@@ -14,5 +14,6 @@ Closes: <!-- issue link -->
 - [ ] **CI is green** — lint / typecheck / build (and tests where present) pass
 - [ ] **Tests** — added/updated for new behaviour; existing tests pass
 - [ ] **No secrets or PII** in code, logs, or fixtures; `.env` is not committed
-- [ ] **Docs** — README / AGENTS / relevant docs updated when behaviour changes
+- [ ] **README is current** — updated in this PR if setup, env vars, architecture,
+      routes/endpoints, scripts or workflow changed (or state "no change needed")
 - [ ] **DB migrations** (if any) are included and the apply steps are called out
