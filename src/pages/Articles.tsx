@@ -28,12 +28,7 @@ export default function Articles() {
     const base = active ? articlesIn(active) : ARTICLES;
     const q = query.trim().toLowerCase();
     if (!q) return base;
-    return base.filter(
-      (a) =>
-        a.title.toLowerCase().includes(q) ||
-        a.excerpt.toLowerCase().includes(q) ||
-        a.source.toLowerCase().includes(q),
-    );
+    return base.filter((a) => a.title.toLowerCase().includes(q));
   }, [active, query]);
 
   const activeCategory = CATEGORIES.find((c) => c.slug === active);
@@ -176,17 +171,14 @@ function ArticleCard({ article, index }: { article: Article; index: number }) {
       transition={{ duration: 0.3, delay: Math.min(index, 8) * 0.03, ease: EASE }}
     >
       <Card className="h-full">
-        <Link to={`/articles/${article.slug}`} className="flex h-full flex-col gap-3 p-5">
+        <Link to={`/articles/${article.slug}`} className="flex h-full flex-col gap-4 p-5">
           <div className="flex items-start justify-between gap-3">
             <h3 className="text-h3 text-ink">{article.title}</h3>
             <ArrowUpRight aria-hidden className="mt-1 size-4 shrink-0 text-faint" />
           </div>
-          <p className="text-sm text-muted">{article.excerpt}</p>
-          <p className="mt-auto flex items-center gap-2 font-mono text-xs text-faint">
-            <span>{article.source}</span>
-            <span aria-hidden>·</span>
-            <span>{article.readTime}</span>
-          </p>
+          {/* No excerpt and no read time: both would be claims about writing
+              that does not exist yet. */}
+          <span className="mt-auto font-mono text-xs text-faint">Coming soon</span>
         </Link>
       </Card>
     </motion.li>
