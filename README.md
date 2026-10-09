@@ -6,6 +6,11 @@ pages (pricing-free product tour, legal, support).
 
 > See [CONTRIBUTING.md](CONTRIBUTING.md) for the workflow and
 > [SECURITY.md](SECURITY.md) for data-handling rules.
+>
+> **Before wiring any chart to real data**, read
+> [docs/WEARABLE-DATA-FLOW.md](docs/WEARABLE-DATA-FLOW.md) — it states which
+> numbers on the site are illustrative today and which endpoints the athlete
+> dashboard will consume.
 
 ---
 
