@@ -15,7 +15,7 @@ export const SITE = {
     'QYNE turns wearable data, smartphone assessments and sport-specific skill analysis into a personalized, periodized training plan.',
   locations: 'Bangalore · India',
   email: 'support@qyne.one',
-} as const
+} as const;
 
 /**
  * URL of the QYNE app — the post-login dashboard, a SEPARATE deployment at
@@ -29,16 +29,16 @@ export const SITE = {
  *   3. Staging app, as a safe default for local dev and preview builds.
  */
 export function appUrl(path = ''): string {
-  const configured = (import.meta.env.VITE_APP_URL as string | undefined)?.replace(/\/+$/, '')
-  if (configured) return configured + path
+  const configured = (import.meta.env.VITE_APP_URL as string | undefined)?.replace(/\/+$/, '');
+  if (configured) return configured + path;
 
   if (typeof window !== 'undefined') {
-    const host = window.location.hostname
+    const host = window.location.hostname;
     if (host === 'qyne.one' || host.endsWith('.qyne.one')) {
-      return `https://app.${host.replace(/^app\./, '')}${path}`
+      return `https://app.${host.replace(/^app\./, '')}${path}`;
     }
   }
-  return `https://app.staging.qyne.one${path}`
+  return `https://app.staging.qyne.one${path}`;
 }
 
 /** Primary navigation — used by Nav and the demo CTA. */
@@ -48,7 +48,8 @@ export const NAV_LINKS = [
   { label: 'Assessments', href: '/assessments' },
   { label: 'Periodization', href: '/periodization' },
   { label: 'Skill assessment', href: '/cricket' },
-] as const
+  { label: 'Articles', href: '/articles' },
+] as const;
 
 /** Wearable brands QYNE ingests data from. */
 export const WEARABLES = [
@@ -60,7 +61,7 @@ export const WEARABLES = [
   'Noise',
   'boAt',
   'Polar',
-] as const
+] as const;
 
 /** Footer link columns. */
 export const FOOTER_COLUMNS = [
@@ -104,12 +105,7 @@ export const FOOTER_COLUMNS = [
       { label: 'DPDP compliance', href: '/privacy#minors' },
     ],
   },
-] as const
+] as const;
 
 /** Role options for the demo request form. */
-export const DEMO_ROLES = [
-  'Academy owner',
-  'Head coach',
-  'Coach',
-  'Other',
-] as const
+export const DEMO_ROLES = ['Academy owner', 'Head coach', 'Coach', 'Other'] as const;
