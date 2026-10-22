@@ -16,6 +16,8 @@ const CricketPage = lazy(() => import('./pages/CricketIntelligence'));
 const Performance = lazy(() => import('./pages/Performance'));
 const ExerciseLibrary = lazy(() => import('./pages/ExerciseLibrary'));
 const Articles = lazy(() => import('./pages/Articles'));
+const Doc = lazy(() => import('./pages/Doc'));
+const DocInternal = lazy(() => import('./pages/DocInternal'));
 const Article = lazy(() => import('./pages/Article'));
 const ForAcademies = lazy(() => import('./pages/ForAcademies'));
 const ForAthletes = lazy(() => import('./pages/ForAthletes'));
@@ -39,6 +41,8 @@ export default function App() {
         <Route path="performance" element={<Performance />} />
         <Route path="exercise-library" element={<ExerciseLibrary />} />
         <Route path="articles" element={<Articles />} />
+        <Route path="doc" element={<Doc />} />
+        <Route path="doc/internal" element={<DocInternal />} />
         <Route path="articles/:slug" element={<Article />} />
         <Route path="for-academies" element={<ForAcademies />} />
         <Route path="for-athletes" element={<ForAthletes />} />

@@ -48,6 +48,9 @@ export const NAV_LINKS = [
   { label: 'Assessments', href: '/assessments' },
   { label: 'Periodization', href: '/periodization' },
   { label: 'Skill assessment', href: '/cricket' },
+  // The two reference destinations sit together at the end of the header:
+  // /doc is what every number means, /articles is the plain-language reading.
+  { label: 'Metrics', href: '/doc' },
   { label: 'Articles', href: '/articles' },
 ] as const;
 
@@ -75,6 +78,7 @@ export const FOOTER_COLUMNS = [
       { label: 'Skill assessment', href: '/cricket' },
       { label: 'Performance system', href: '/performance' },
       { label: 'Exercise library', href: '/exercise-library' },
+      { label: 'Metric documentation', href: '/doc' },
       { label: 'Get the app', href: '/#app' },
     ],
   },
