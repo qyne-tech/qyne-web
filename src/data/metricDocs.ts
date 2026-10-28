@@ -78,16 +78,29 @@ export const SUPPLY_LABELS: Record<Supply, string> = {
  * are the sleep stages, which are coloured rather than banded.
  */
 export type Tone =
+  // The four-step scale every scored metric is banded on, best first. Read
+  // from the GOOD end of the metric's own range, which is the LOW end for
+  // Strain and Stress. A three-band metric has no teal: its green covers the
+  // top two steps.
+  | 'green'
+  | 'teal'
+  | 'amber'
+  | 'red'
+  // The categorical tones, for figures that are not a judgement. Sleep stages
+  // are the case: deep is not better than REM, it is a different thing.
+  | 'deep_sleep'
+  | 'light_sleep'
+  | 'rem'
+  | 'awake'
+  // The semantic tones. VO2 max still uses these: it has five bands, and
+  // which two of the five share a colour on a four-step scale is a decision
+  // nobody has made yet.
   | 'success'
   | 'info'
   | 'neutral'
   | 'warning'
   | 'danger'
-  | 'critical'
-  | 'deep_sleep'
-  | 'light_sleep'
-  | 'rem'
-  | 'awake';
+  | 'critical';
 
 /** A closed numeric span, in the metric's own unit. */
 export interface Interval {
@@ -347,19 +360,19 @@ export const METRIC_DOCS: MetricDoc[] = [
         {
           label: 'Good',
           ranges: [{ from: 67, to: 100 }],
-          tone: 'success',
+          tone: 'green',
           meaning: 'At or above your own baseline. Good to push.',
         },
         {
           label: 'Moderate',
           ranges: [{ from: 34, to: 66 }],
-          tone: 'warning',
+          tone: 'amber',
           meaning: 'Enough in the tank for work, not for a peak.',
         },
         {
           label: 'Low',
           ranges: [{ from: 0, to: 33 }],
-          tone: 'danger',
+          tone: 'red',
           meaning: 'Prioritise recovery. The body is still carrying yesterday.',
         },
       ],
@@ -472,25 +485,25 @@ export const METRIC_DOCS: MetricDoc[] = [
         {
           label: 'Fully Charged',
           ranges: [{ from: 80, to: 100 }],
-          tone: 'success',
+          tone: 'green',
           meaning: 'Good for the hardest session you had planned.',
         },
         {
           label: 'Optimal',
           ranges: [{ from: 50, to: 79 }],
-          tone: 'warning',
+          tone: 'teal',
           meaning: 'Enough for ordinary work.',
         },
         {
           label: 'Drained',
           ranges: [{ from: 20, to: 49 }],
-          tone: 'danger',
+          tone: 'amber',
           meaning: 'Keep it easy.',
         },
         {
           label: 'Depleted',
           ranges: [{ from: 0, to: 19 }],
-          tone: 'critical',
+          tone: 'red',
           meaning: 'Little left. Treat today as recovery.',
         },
       ],
@@ -611,25 +624,25 @@ export const METRIC_DOCS: MetricDoc[] = [
         {
           label: 'All Out',
           ranges: [{ from: 18, to: 21 }],
-          tone: 'danger',
+          tone: 'red',
           meaning: 'A day that needs a real recovery day after it.',
         },
         {
           label: 'Hard',
           ranges: [{ from: 14, to: 17.9 }],
-          tone: 'warning',
+          tone: 'amber',
           meaning: 'Real training load, and worth following with something easier.',
         },
         {
           label: 'Moderate',
           ranges: [{ from: 10, to: 13.9 }],
-          tone: 'neutral',
+          tone: 'teal',
           meaning: 'Where an ordinary day of movement with no hard training lands.',
         },
         {
           label: 'Light',
           ranges: [{ from: 0, to: 9.9 }],
-          tone: 'success',
+          tone: 'green',
           meaning: 'A light day. What a rest day should look like.',
         },
       ],
@@ -742,25 +755,25 @@ export const METRIC_DOCS: MetricDoc[] = [
         {
           label: 'High Stress',
           ranges: [{ from: 76, to: 100 }],
-          tone: 'danger',
+          tone: 'red',
           meaning: 'HRV well below your own normal.',
         },
         {
           label: 'Medium Stress',
           ranges: [{ from: 51, to: 75 }],
-          tone: 'info',
+          tone: 'amber',
           meaning: 'Elevated, and worth a reason.',
         },
         {
           label: 'Low Stress',
           ranges: [{ from: 26, to: 50 }],
-          tone: 'warning',
+          tone: 'teal',
           meaning: 'Ordinary daily load.',
         },
         {
           label: 'Rest / Recovery',
           ranges: [{ from: 0, to: 25 }],
-          tone: 'success',
+          tone: 'green',
           meaning: 'Strong parasympathetic tone: the state the body repairs in.',
         },
       ],
