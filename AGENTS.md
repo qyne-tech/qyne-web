@@ -10,6 +10,6 @@ commit identity (your own org `@qyne.one` account), and PRs (a human maintainer 
 Do not restate them here.
 
 ## Repo-specific rules (qyne-web — marketing site)
-- Vite + React + Tailwind. **Pure marketing site: no backend calls, no Supabase, no auth.** "Log in"/"Sign up" hand off to the app via `appUrl()` (see `src/lib/site.ts`).
+- Vite + React + Tailwind. **Marketing site: no Supabase, no auth. The one backend call is the public `GET /articles` catalogue via `apiUrl()`.** "Log in"/"Sign up" hand off to the app via `appUrl()` (see `src/lib/site.ts`).
 - Use the shared styling primitives and design tokens in `src/`; never hardcode colors.
 - SEO matters: keep per-page `<Seo>` (canonical/OG/Twitter) and the sitemap current when adding/removing routes.

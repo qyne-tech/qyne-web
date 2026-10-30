@@ -7,7 +7,8 @@ import { Card } from '../components/primitives/Card';
 import { Eyebrow } from '../components/primitives/Eyebrow';
 import { Seo } from '../components/primitives/Seo';
 import { PageIntro } from '../components/sections/PageIntro';
-import { ARTICLES, CATEGORIES, articlesIn, type Article } from '../data/articles';
+import { CATEGORIES, categoryBySlug, type Article } from '../data/articles';
+import { useArticles } from '../hooks/useArticles';
 import { EASE } from '../components/animations/ScrollReveal';
 import { cn } from '../lib/utils';
 
@@ -18,20 +19,31 @@ import { cn } from '../lib/utils';
  * is where those cards link to. A reader arriving from the HRV card should see
  * HRV selected, which is why the category lives in the query string rather than
  * in component state alone.
+ *
+ * The articles come from qyne-service: the selected category asks
+ * `GET /articles?metric=…`, and "All articles" asks without a metric.
  */
 export default function Articles() {
   const [params, setParams] = useSearchParams();
-  const active = params.get('category');
+  const activeCategory = categoryBySlug(params.get('category'));
+  const active = activeCategory?.slug ?? null;
   const [query, setQuery] = useState('');
 
-  const shown = useMemo(() => {
-    const base = active ? articlesIn(active) : ARTICLES;
-    const q = query.trim().toLowerCase();
-    if (!q) return base;
-    return base.filter((a) => a.title.toLowerCase().includes(q));
-  }, [active, query]);
+  // Every article, for the sidebar's counts; and the selected reading list.
+  const allArticles = useArticles();
+  const readingList = useArticles(activeCategory);
 
-  const activeCategory = CATEGORIES.find((c) => c.slug === active);
+  const shown = useMemo(() => {
+    if (readingList.status !== 'ready') return [];
+    const q = query.trim().toLowerCase();
+    if (!q) return readingList.data;
+    return readingList.data.filter((a) => a.title.toLowerCase().includes(q));
+  }, [readingList, query]);
+
+  const countIn = (slug: string) =>
+    allArticles.status === 'ready'
+      ? allArticles.data.filter((a) => a.category === slug).length
+      : undefined;
 
   const select = (slug: string | null) => {
     const next = new URLSearchParams(params);
@@ -62,7 +74,7 @@ export default function Articles() {
             <nav aria-label="Article categories" className="mt-4 flex flex-col gap-0.5">
               <CategoryLink
                 label="All articles"
-                count={ARTICLES.length}
+                count={allArticles.status === 'ready' ? allArticles.data.length : undefined}
                 active={!active}
                 onClick={() => select(null)}
               />
@@ -70,7 +82,7 @@ export default function Articles() {
                 <CategoryLink
                   key={c.slug}
                   label={c.label}
-                  count={articlesIn(c.slug).length}
+                  count={countIn(c.slug)}
                   active={active === c.slug}
                   onClick={() => select(c.slug)}
                 />
@@ -105,7 +117,15 @@ export default function Articles() {
               </label>
             </div>
 
-            {shown.length === 0 ? (
+            {readingList.status === 'loading' ? (
+              <p className="mt-10 text-sm text-muted">Loading articles…</p>
+            ) : readingList.status === 'error' ? (
+              <p className="mt-10 text-sm text-muted">
+                The articles could not be loaded. Check your connection and refresh the page.
+              </p>
+            ) : readingList.data.length === 0 ? (
+              <p className="mt-10 text-sm text-muted">Nothing published here yet.</p>
+            ) : shown.length === 0 ? (
               <p className="mt-10 text-sm text-muted">
                 Nothing matches “{query}”.{' '}
                 <button
@@ -138,7 +158,8 @@ function CategoryLink({
   onClick,
 }: {
   label: string;
-  count: number;
+  /** Undefined until the catalogue has loaded. */
+  count?: number;
   active: boolean;
   onClick: () => void;
 }) {
@@ -153,14 +174,29 @@ function CategoryLink({
       )}
     >
       <span>{label}</span>
-      <span className={cn('font-mono text-xs', active ? 'text-primary' : 'text-faint')}>
-        {count}
-      </span>
+      {count !== undefined && (
+        <span className={cn('font-mono text-xs', active ? 'text-primary' : 'text-faint')}>
+          {count}
+        </span>
+      )}
     </button>
   );
 }
 
 function ArticleCard({ article, index }: { article: Article; index: number }) {
+  const cardContent = (
+    <>
+      <div className="flex items-start justify-between gap-3">
+        <h3 className="text-h3 text-ink">{article.title}</h3>
+        <ArrowUpRight aria-hidden className="mt-1 size-4 shrink-0 text-faint" />
+      </div>
+      <span className="mt-auto font-mono text-xs text-faint">
+        {article.source} · {article.readMinutes} min read
+      </span>
+    </>
+  );
+  const cardClassName = 'flex h-full flex-col gap-4 p-5';
+
   return (
     // Deliberately no opacity-0 entrance. A reading list that is invisible
     // until an animation runs is invisible whenever one does not, and this page
@@ -171,15 +207,17 @@ function ArticleCard({ article, index }: { article: Article; index: number }) {
       transition={{ duration: 0.3, delay: Math.min(index, 8) * 0.03, ease: EASE }}
     >
       <Card className="h-full">
-        <Link to={`/articles/${article.slug}`} className="flex h-full flex-col gap-4 p-5">
-          <div className="flex items-start justify-between gap-3">
-            <h3 className="text-h3 text-ink">{article.title}</h3>
-            <ArrowUpRight aria-hidden className="mt-1 size-4 shrink-0 text-faint" />
-          </div>
-          {/* No excerpt and no read time: both would be claims about writing
-              that does not exist yet. */}
-          <span className="mt-auto font-mono text-xs text-faint">Coming soon</span>
-        </Link>
+        {/* An article whose authoritative version is the publisher's opens
+            there; one written to be read in place opens here. */}
+        {article.url ? (
+          <a href={article.url} target="_blank" rel="noopener noreferrer" className={cardClassName}>
+            {cardContent}
+          </a>
+        ) : (
+          <Link to={`/articles/${article.slug}`} className={cardClassName}>
+            {cardContent}
+          </Link>
+        )}
       </Card>
     </motion.li>
   );

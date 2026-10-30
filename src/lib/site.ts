@@ -19,8 +19,8 @@ export const SITE = {
 
 /**
  * URL of the QYNE app — the post-login dashboard, a SEPARATE deployment at
- * `app.<domain>`. This marketing site never authenticates and makes no backend
- * calls; "Log in" / "Sign up" hand off to the app, which owns the real OTP flow.
+ * `app.<domain>`. This marketing site never authenticates; "Log in" / "Sign up"
+ * hand off to the app, which owns the real OTP flow.
  *
  * Resolution order:
  *   1. `VITE_APP_URL` build var (set this in production, e.g. https://app.qyne.one).
@@ -39,6 +39,32 @@ export function appUrl(path = ''): string {
     }
   }
   return `https://app.staging.qyne.one${path}`;
+}
+
+/**
+ * URL of qyne-service, the QYNE API. The site reads one thing from it: the
+ * public, unauthenticated article catalogue (`/articles`). Nothing else.
+ *
+ * Resolution order:
+ *   1. `VITE_API_URL` build var (set this in production, e.g. https://api.qyne.one).
+ *   2. `/api` in local dev, which Vite proxies to staging (see vite.config.ts),
+ *      so the browser never makes a cross-origin call it would be refused.
+ *   3. Derived from the current host for any `*.qyne.one` origin
+ *      (staging.qyne.one → api.staging.qyne.one, qyne.one → api.qyne.one).
+ *   4. The staging API.
+ */
+export function apiUrl(path = ''): string {
+  const configured = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/+$/, '');
+  if (configured) return configured + path;
+  if (import.meta.env.DEV) return `/api${path}`;
+
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname;
+    if (host === 'qyne.one' || host.endsWith('.qyne.one')) {
+      return `https://api.${host.replace(/^(app|api)\./, '')}${path}`;
+    }
+  }
+  return `https://api.staging.qyne.one${path}`;
 }
 
 /** Primary navigation — used by Nav and the demo CTA. */

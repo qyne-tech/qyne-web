@@ -3,37 +3,52 @@ import { ArrowLeft } from 'lucide-react';
 import { Section } from '../components/primitives/Container';
 import { Eyebrow } from '../components/primitives/Eyebrow';
 import { Seo } from '../components/primitives/Seo';
-import { articleBySlug, articlesIn, categoryOf } from '../data/articles';
+import { categoryOf, type ArticleDetail } from '../data/articles';
+import { useArticle, useArticles } from '../hooks/useArticles';
 
 /**
- * One article.
+ * One article, read from qyne-service (`GET /articles/{slug}`).
  *
- * Nothing is written yet, so the page is the title and an honest line saying
+ * Until its body is written, the page is the title and an honest line saying
  * so. Deliberately not filled with stand-in prose: a placeholder that reads
  * like an article is worse than an empty one, because the reader cannot tell
  * the difference and we are writing about their health. ADR-0006.
  *
  * `noindex` while the body is empty, so a search engine does not start ranking
- * thirty-five pages that say "coming soon".
+ * pages that say "coming soon".
  */
 export default function Article() {
-  const { slug } = useParams<{ slug: string }>();
-  const article = slug ? articleBySlug(slug) : undefined;
+  const { slug = '' } = useParams<{ slug: string }>();
+  const state = useArticle(slug);
 
+  if (state.status === 'loading') return <Status text="Loading…" />;
+  if (state.status === 'error') {
+    return (
+      <Status text="This article could not be loaded. Check your connection and refresh the page." />
+    );
+  }
   // An unknown slug goes back to the index rather than rendering blank. The app
   // deep-links by slug, so a renamed article must not leave a reader nowhere.
-  if (!article) return <Navigate to="/articles" replace />;
+  if (!state.data) return <Navigate to="/articles" replace />;
 
+  return <ArticleBody article={state.data} />;
+}
+
+function ArticleBody({ article }: { article: ArticleDetail }) {
   const category = categoryOf(article);
-  const more = articlesIn(article.category).filter((a) => a.slug !== article.slug);
+  const readingList = useArticles(category);
+  const more =
+    category && readingList.status === 'ready'
+      ? readingList.data.filter((a) => a.slug !== article.slug)
+      : [];
 
   return (
     <>
       <Seo
         title={`${article.title} — QYNE`}
-        description={`${article.title}. Coming soon from QYNE.`}
+        description={`${article.title}. From ${article.source}.`}
         path={`/articles/${article.slug}`}
-        noindex
+        noindex={!article.body}
       />
 
       <Section className="pt-32 sm:pt-36 lg:pt-40">
@@ -48,10 +63,34 @@ export default function Article() {
 
           <h1 className="mt-6 text-h1 text-ink">{article.title}</h1>
 
-          <div className="mt-10 rounded-lg border border-border bg-surface p-8 text-center">
-            <Eyebrow tone="muted">Coming soon</Eyebrow>
-            <p className="mt-3 text-lead text-muted">We are still writing this one.</p>
-          </div>
+          {article.body ? (
+            <div className="mt-10 flex flex-col gap-5">
+              {article.body.split(/\n{2,}/).map((paragraph, i) => (
+                <p key={i} className="text-lead text-muted">
+                  {paragraph}
+                </p>
+              ))}
+            </div>
+          ) : article.url ? (
+            <div className="mt-10 rounded-lg border border-border bg-surface p-8 text-center">
+              <Eyebrow tone="muted">{article.source}</Eyebrow>
+              <p className="mt-3 text-lead text-muted">
+                <a
+                  href={article.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary underline-offset-4 hover:underline"
+                >
+                  Read it on the publisher’s site
+                </a>
+              </p>
+            </div>
+          ) : (
+            <div className="mt-10 rounded-lg border border-border bg-surface p-8 text-center">
+              <Eyebrow tone="muted">Coming soon</Eyebrow>
+              <p className="mt-3 text-lead text-muted">We are still writing this one.</p>
+            </div>
+          )}
 
           {more.length > 0 && (
             <div className="mt-14 border-t border-border pt-10">
@@ -64,7 +103,9 @@ export default function Article() {
                       className="group flex items-baseline justify-between gap-4 rounded-md px-3 py-2.5 transition-colors hover:bg-surface"
                     >
                       <span className="text-sm text-muted group-hover:text-ink">{a.title}</span>
-                      <span className="shrink-0 font-mono text-xs text-faint">Soon</span>
+                      <span className="shrink-0 font-mono text-xs text-faint">
+                        {a.readMinutes} min
+                      </span>
                     </Link>
                   </li>
                 ))}
@@ -74,5 +115,13 @@ export default function Article() {
         </div>
       </Section>
     </>
+  );
+}
+
+function Status({ text }: { text: string }) {
+  return (
+    <Section className="pt-32 sm:pt-36 lg:pt-40">
+      <p className="mx-auto max-w-[68ch] text-sm text-muted">{text}</p>
+    </Section>
   );
 }

@@ -43,17 +43,22 @@ npm run lint    # eslint
 
 ### Environment
 
-The auth flow needs the Supabase project (the **same** one the mobile app uses).
-Copy `.env.example` → `.env` and fill in:
+Copy `.env.example` → `.env`. Every variable is optional; each defaults from
+the host.
 
 | Variable | Purpose |
 |---|---|
-| `VITE_SUPABASE_URL` | Supabase project URL |
-| `VITE_SUPABASE_ANON_KEY` | Supabase anon/public key |
+| `VITE_APP_URL` | The QYNE app that "Log in" / "Sign up" hand off to (`appUrl()`) |
+| `VITE_API_URL` | qyne-service, read only for the public article catalogue (`apiUrl()`) |
+
+The articles (`/articles`, `/articles/:slug`) are the site's one backend read:
+`GET /articles?metric=…` from qyne-service, unauthenticated. In `npm run dev`
+the calls go to `/api`, which Vite proxies to the staging API, so no CORS setup
+is needed locally. A deployed build calls the API directly, so its origin must
+be in the service's `CORS_ORIGINS`.
 
 Vite only exposes vars prefixed `VITE_` to the client. `.env` is gitignored;
-`.env.example` is tracked. The rest of the marketing site is static and needs no
-env.
+`.env.example` is tracked. The rest of the marketing site is static.
 
 ---
 
@@ -69,7 +74,8 @@ src/
     visuals/     product mockups (dashboard, phone, recovery ring)
   pages/         one component per route
   hooks/         shared React hooks
-  lib/           site config/nav (`site.ts`), sports data, `cn()` helper
+  data/          static content (article categories, metric reference)
+  lib/           site config/nav (`site.ts`), the articles API client, sports data, `cn()` helper
   styles/        theme.css — the Tailwind v4 design tokens
 ```
 
