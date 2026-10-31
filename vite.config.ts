@@ -5,6 +5,17 @@ import tailwindcss from '@tailwindcss/vite'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  server: {
+    proxy: {
+      // The article catalogue in dev. Same-origin to the browser, so the API's
+      // CORS allow-list does not need localhost on it. See `apiUrl`.
+      '/api': {
+        target: 'https://api.staging.qyne.one',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
+    },
+  },
   build: {
     // Warn only on genuinely large chunks (the vendor split below is expected).
     chunkSizeWarningLimit: 600,

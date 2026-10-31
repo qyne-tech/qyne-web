@@ -1,6 +1,6 @@
 # Deploy the SPA: build, sync to S3, invalidate CloudFront.
 #   develop → staging   (vars: AWS_DEPLOY_ROLE_ARN, WEB_BUCKET, WEB_DISTRIBUTION_ID,
-#                        VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY)
+#                        VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, VITE_API_URL)
 #   main    → production (same names, PROD_ prefixed)
 # Keyless via GitHub OIDC. Each job no-ops until its branch's role var is set.
 name: deploy
@@ -29,6 +29,9 @@ jobs:
       DIST: ${{ github.ref_name == 'main' && vars.PROD_WEB_DISTRIBUTION_ID || vars.WEB_DISTRIBUTION_ID }}
       VITE_SUPABASE_URL: ${{ github.ref_name == 'main' && vars.PROD_VITE_SUPABASE_URL || vars.VITE_SUPABASE_URL }}
       VITE_SUPABASE_ANON_KEY: ${{ github.ref_name == 'main' && vars.PROD_VITE_SUPABASE_ANON_KEY || vars.VITE_SUPABASE_ANON_KEY }}
+      # Optional; unset derives it from the host (see apiUrl). Production never
+      # falls back to the staging var, so a prod build cannot read staging.
+      VITE_API_URL: ${{ github.ref_name == 'main' && vars.PROD_VITE_API_URL || github.ref_name != 'main' && vars.VITE_API_URL || '' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
