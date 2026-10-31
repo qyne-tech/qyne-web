@@ -355,7 +355,7 @@ export const METRIC_DOCS: MetricDoc[] = [
     },
     bands: {
       basis: 'generic',
-      note: 'The inputs are compared with the athlete’s own baseline; the bands themselves are one table for everybody. Both halves of that sentence matter, and the response declares which in its bands-basis field.',
+      note: 'The inputs are compared with the athlete’s own baseline; the bands themselves are one table for everybody. Both halves of that sentence matter, and the response declares which in its bands-basis field. The colours run best to worst — green, amber, red — read from the top. Recovery has three bands, so there is no teal step between green and amber.',
       rows: [
         {
           label: 'Good',
@@ -480,7 +480,7 @@ export const METRIC_DOCS: MetricDoc[] = [
     },
     bands: {
       basis: 'generic',
-      note: 'Deliberately not the recovery thresholds. Recovery asks what state you woke in; energy asks what is left of it now.',
+      note: 'Deliberately not the recovery thresholds. Recovery asks what state you woke in; energy asks what is left of it now. The colours run best to worst — green, teal, amber, red — read from the top, so Optimal is the teal second step and Depleted the red floor.',
       rows: [
         {
           label: 'Fully Charged',
@@ -619,7 +619,7 @@ export const METRIC_DOCS: MetricDoc[] = [
     },
     bands: {
       basis: 'generic',
-      note: 'Anchored on the one measurement the scale itself was anchored on: an ordinary worn day with no training accrues 100-250 TRIMP, which is about 9 of 21, so Moderate has to contain it. Not fitted to the individual athlete.',
+      note: 'Anchored on the one measurement the scale itself was anchored on: an ordinary worn day with no training accrues 100-250 TRIMP, which is about 9 of 21, so Moderate has to contain it. Not fitted to the individual athlete. The colours read from the LOW end, because less strain is better: Light is green, All Out red, with teal and amber between. Green, teal, amber, red is still best to worst — the scale is just read upside down.',
       rows: [
         {
           label: 'All Out',
@@ -750,7 +750,7 @@ export const METRIC_DOCS: MetricDoc[] = [
     },
     bands: {
       basis: 'personal',
-      note: 'The same figure on two athletes therefore means the same thing relative to each of them. This is the opposite of every other band table we serve, and the response declares it.',
+      note: 'The same figure on two athletes therefore means the same thing relative to each of them. This is the opposite of every other band table we serve, and the response declares it. Like strain, the colours read from the LOW end — Rest is green, High red — because less stress is better.',
       rows: [
         {
           label: 'High Stress',
@@ -905,24 +905,24 @@ export const METRIC_DOCS: MetricDoc[] = [
     },
     bands: {
       basis: 'generic',
-      note: 'The thresholds follow the split Fitbit and Garmin publish, with their top two bands merged.',
+      note: 'The thresholds follow the split Fitbit and Garmin publish, with their top two bands merged. The colours are QYNE’s scored scale: green is best, amber in the middle, red worst, read from the top. Three bands, so no teal step.',
       rows: [
         {
           label: 'Good',
           ranges: [{ from: 80, to: 100 }],
-          tone: 'success',
+          tone: 'green',
           meaning: 'A night that did its job.',
         },
         {
           label: 'Moderate',
           ranges: [{ from: 60, to: 79 }],
-          tone: 'warning',
+          tone: 'amber',
           meaning: 'Enough to function on, not enough to build on.',
         },
         {
           label: 'Poor',
           ranges: [{ from: 0, to: 59 }],
-          tone: 'danger',
+          tone: 'red',
           meaning: 'Treat the next day as recovery.',
         },
       ],
@@ -2079,6 +2079,351 @@ export const METRIC_DOCS: MetricDoc[] = [
       ],
     },
     supply: { band: 'measured', health_connect: 'measured', apple_health: 'measured' },
+  },
+  {
+    slug: 'workout-calories',
+    name: 'Workout calories',
+    group: 'fitness',
+    summary: 'Active and total energy for one recorded session.',
+    unit: 'kcal',
+    dependsOn: {
+      figure: "The session's own burn, plus your weight, height, age and sex for the resting part.",
+      bands: 'No bands.',
+    },
+    shown: [
+      'A workout summary: "Total Calories burnt" on a card, and "Active calories" in the details.',
+    ],
+    formula: {
+      expression: 'total = active + (BMR / 1440) x durationMin',
+      terms: [
+        {
+          name: 'active',
+          expression: "the source's own figure for the session",
+          note: 'ASSUMPTION: the source value is the active (exercise) burn. If a source reports a total instead, this would double-count rest; the assumption lives in one place.',
+        },
+        {
+          name: 'BMR (Mifflin-St Jeor)',
+          expression: '10 x weightKg + 6.25 x heightCm - 5 x age + c',
+          note: 'c = +5 for male, -161 for female. kcal/day. An unknown sex has no constant, so total stays empty rather than biased by ~160.',
+        },
+        {
+          name: 'resting over the session',
+          expression: '(BMR / 1440) x durationMin',
+          note: "The day's resting rate, for the minutes the session lasted.",
+        },
+      ],
+      steps: [
+        'Active is shown on its own whenever the source sends a calorie figure.',
+        'Total needs weight, height, age and sex; missing any one, it is left empty, never guessed.',
+        'Avg speed, shown beside it on distance sports, is simply distance / duration.',
+      ],
+      constants: [
+        {
+          symbol: '1440',
+          value: '1440',
+          why: 'Minutes in a day, to turn a daily BMR into a per-minute rate.',
+        },
+        { symbol: 'c (male)', value: '+5', why: 'Mifflin-St Jeor sex constant for men.' },
+        { symbol: 'c (female)', value: '-161', why: 'Mifflin-St Jeor sex constant for women.' },
+      ],
+      cite: 'qyne-service/src/workouts/workout-summary.ts',
+    },
+    significance: {
+      why: "Total is the all-in number a day's energy budget uses; active is what the session itself cost.",
+      limits: [
+        "Both rest on the source's own calorie figure, itself an estimate from heart rate and movement.",
+        'Total is empty until the profile carries weight, height and sex.',
+      ],
+    },
+    supply: { band: 'derived', health_connect: 'derived', apple_health: 'derived' },
+  },
+  {
+    slug: 'workout-strain',
+    name: 'Workout strain',
+    group: 'fitness',
+    summary: 'How hard one session was, on the 0-21 strain scale.',
+    unit: '0-21',
+    dependsOn: {
+      figure:
+        'Your heart rate through the session, against your age-predicted maximum and resting rate.',
+      bands: 'No bands on the session figure.',
+    },
+    shown: ['"Total strain" in a workout\'s details.'],
+    formula: {
+      expression: 'strain = 21 x (1 - e^(-TRIMP / 360))',
+      terms: [
+        {
+          name: 'TRIMP',
+          expression: 'sum over samples of  HRr x k1 x e^(k2 x HRr) x minutes',
+          note: "Banister TRIMP, integrated over the session's own heart-rate samples.",
+        },
+        {
+          name: 'HRr (heart-rate reserve)',
+          expression: '(hr - resting) / (max - resting)',
+          note: 'The fraction of reserve in use. max is Tanaka (see Workout heart-rate zones).',
+        },
+      ],
+      steps: [
+        'Only a session recorded live carries the per-sample heart rate this needs; a workout read from band history has no strain figure.',
+        'The same Banister curve the daily strain uses, so a session and a day sit on one scale.',
+      ],
+      constants: [
+        {
+          symbol: 'k1, k2 (male)',
+          value: '0.64, 1.92',
+          why: 'Banister & Calvert coefficients for the male exponential.',
+        },
+        {
+          symbol: 'k1, k2 (female)',
+          value: '0.86, 1.67',
+          why: 'The female form of the same curve.',
+        },
+        {
+          symbol: '360',
+          value: '360',
+          why: 'The TRIMP that maps to about two-thirds of the 0-21 scale. Saturating, so hard and very hard stay distinguishable.',
+          provisional: true,
+        },
+      ],
+      cite: 'qyne-service/src/workouts/workout-summary.ts',
+    },
+    significance: {
+      why: 'One number for how much a session took out of you, comparable across sports.',
+      limits: [
+        'No figure without a live recording.',
+        'Age-predicted maximum carries about +-10 bpm of error.',
+      ],
+    },
+    supply: { band: 'derived', health_connect: 'none', apple_health: 'none' },
+  },
+  {
+    slug: 'workout-hr-zones',
+    name: 'Workout heart-rate zones',
+    group: 'fitness',
+    summary: 'Time spent in each of the five heart-rate zones.',
+    unit: 'seconds per zone',
+    dependsOn: {
+      figure: 'Your heart rate through the session.',
+      bands: 'The zone edges adjust for your age (maximum) and your resting rate (Z1 floor).',
+    },
+    shown: ['The "Heart Rate Zones" bars, and the Average / Max / Recovery row above them.'],
+    formula: {
+      expression: 'HRmax = 208 - 0.7 x age',
+      terms: [
+        {
+          name: 'Z1 floor',
+          expression: 'resting heart rate',
+          note: 'The recovery zone starts at rest.',
+        },
+        {
+          name: 'Z2-Z5 floors',
+          expression: 'HRmax x zonePct',
+          note: 'Each upper zone starts at a fixed fraction of maximum.',
+        },
+        {
+          name: 'time in a zone',
+          expression: 'sum of the seconds each sample stands for, bucketed by the zone it falls in',
+        },
+      ],
+      steps: [
+        'Maximum is age-predicted by Tanaka, not measured.',
+        'A zone whose floor would fall below the one beneath it collapses to zero width rather than overlapping.',
+        'Only a live recording carries the samples; a band-history workout shows no zones.',
+      ],
+      constants: [
+        {
+          symbol: 'Tanaka',
+          value: '208 - 0.7 x age',
+          why: 'Age-predicted maximum heart rate (Tanaka et al., 2001).',
+        },
+      ],
+      cite: 'qyne-service/src/workouts/workout-summary.ts',
+    },
+    significance: {
+      why: 'Shows where the effort sat: a session mostly in Z2 is endurance, one in Z4-Z5 is intervals.',
+      limits: ['The maximum is predicted from age, so the top zones carry its error.'],
+    },
+    supply: { band: 'derived', health_connect: 'none', apple_health: 'none' },
+  },
+  {
+    slug: 'workout-recovery',
+    name: 'Workout heart-rate recovery',
+    group: 'fitness',
+    summary: 'How fast your heart rate fell at the end of the session.',
+    unit: 'bpm/min',
+    dependsOn: {
+      figure: 'Your heart rate over the last minute of the recording.',
+      bands: 'No bands.',
+    },
+    shown: ['"Recovery" in the row above the zone chart.'],
+    formula: {
+      expression: 'recovery = max(0, hr[end - 60s] - hr[end])',
+      terms: [
+        {
+          name: 'the drop',
+          expression: 'the reading a minute before the last sample, minus the last sample',
+        },
+      ],
+      steps: [
+        'Empty unless the recording runs long enough to hold the minute-long window.',
+        'Clamped at zero, so a session that ended on a surge does not read as negative recovery.',
+      ],
+      constants: [
+        {
+          symbol: 'window',
+          value: '60 s',
+          why: 'Heart-rate recovery is conventionally read over one minute.',
+        },
+      ],
+      cite: 'qyne-service/src/workouts/workout-summary.ts',
+    },
+    significance: {
+      why: 'A faster fall is a marker of better cardiovascular fitness.',
+      limits: [
+        'PROVISIONAL: true recovery is measured from a held cooldown, not inferred from where a recording happened to stop.',
+      ],
+    },
+    supply: { band: 'derived', health_connect: 'none', apple_health: 'none' },
+  },
+  {
+    slug: 'workout-load',
+    name: 'Workout training load',
+    group: 'fitness',
+    summary: 'A 0-100 reading of how demanding the session was.',
+    unit: '0-100',
+    dependsOn: { figure: 'Not finalised.', bands: 'No bands.' },
+    shown: ['The "Physiological Load" bar on a workout summary.'],
+    formula: {
+      expression: 'provisional placeholder',
+      steps: [
+        'PROVISIONAL: the real load formula is not decided yet.',
+        'A stable placeholder is shown per workout — the same value every time the screen opens, not a figure that changes on refresh — and the response flags it as provisional so nothing treats it as measured.',
+      ],
+      constants: [
+        {
+          symbol: 'load',
+          value: 'placeholder',
+          why: 'FORMULA NEEDED(WORKOUT-LOAD). Stands in until the load model is defined.',
+          provisional: true,
+        },
+      ],
+      cite: 'qyne-service/src/workouts/workout-summary.ts',
+    },
+    significance: {
+      why: 'Will summarise session demand on one bar once the formula lands.',
+      limits: ['Not a real figure yet. Do not read anything into its value.'],
+    },
+    supply: { band: 'derived', health_connect: 'derived', apple_health: 'derived' },
+  },
+  {
+    slug: 'workout-laps',
+    name: 'Workout laps',
+    group: 'fitness',
+    summary: 'Per-kilometre splits of a GPS session: time, pace and heart rate.',
+    unit: 'per km',
+    dependsOn: {
+      figure: "The phone's GPS track, each point carrying its own time.",
+      bands: 'No bands.',
+    },
+    shown: ['The lap table on a GPS run: distance, time, pace and HR per lap.'],
+    formula: {
+      expression: 'distance accumulates by great-circle; a lap closes at each 1 km',
+      terms: [
+        {
+          name: 'segment distance',
+          expression: 'haversine(point_i, point_{i+1})',
+          note: 'Great-circle metres between consecutive GPS points.',
+        },
+        {
+          name: 'kilometre time',
+          expression: 't_i + (mark - cumulative) / segment x (t_{i+1} - t_i)',
+          note: 'The exact moment the running total crosses a kilometre, interpolated across the segment that straddles it — so a lap lands on the kilometre, not on the next recorded point.',
+        },
+        {
+          name: 'lap pace',
+          expression: 'lap seconds / lap km',
+        },
+        {
+          name: 'lap HR',
+          expression: 'mean of the HR samples whose time falls inside the lap',
+        },
+      ],
+      steps: [
+        "Needs a time on each GPS point. GPS is event-driven and accuracy-gated, so a point's time cannot be read from its index the way a uniformly-sampled HR point's can; a track without per-point time gives distance only, and no laps.",
+        'The final, partial kilometre is reported as its own lap.',
+        'A GPS run with no band still has laps — pace and distance are there, the per-lap HR is empty.',
+      ],
+      constants: [
+        {
+          symbol: 'lap',
+          value: '1 km',
+          why: 'The split the lap list and the pace column are read in.',
+        },
+      ],
+      cite: 'qyne-service/src/workouts/workout-summary.ts',
+    },
+    significance: {
+      why: 'Shows how pace held or faded across a run, kilometre by kilometre.',
+      limits: [
+        'GPS runs only; an indoor session has no track.',
+        'Accuracy follows the GPS fix quality.',
+      ],
+    },
+    supply: { band: 'none', health_connect: 'none', apple_health: 'none' },
+  },
+  {
+    slug: 'workout-speed-bands',
+    name: 'Workout speed bands',
+    group: 'fitness',
+    summary: 'Time spent running fast and sprinting, from the GPS track.',
+    unit: 'seconds',
+    dependsOn: {
+      figure: "The phone's GPS track, each point carrying its own time.",
+      bands: 'Fixed speed thresholds (provisional).',
+    },
+    shown: ['"High speed running time" and "Sprinting time" on a GPS run.'],
+    formula: {
+      expression: 'segment speed = segment distance / segment time',
+      terms: [
+        {
+          name: 'high-speed seconds',
+          expression: 'sum of segment seconds where speed >= 10 km/h',
+        },
+        {
+          name: 'sprint seconds',
+          expression: 'sum of segment seconds where speed >= 18 km/h',
+          note: 'A subset of high-speed: a sprinting segment counts toward both.',
+        },
+      ],
+      steps: [
+        'Each GPS segment is a pair of consecutive points; its speed is its distance over its own elapsed time.',
+        'Segments too close in time to time a speed from are dropped, so a pair milliseconds apart cannot report a speed no runner reaches.',
+        'Needs per-point time, like laps; without it there are no speed bands.',
+      ],
+      constants: [
+        {
+          symbol: 'high-speed',
+          value: '10 km/h',
+          why: 'A brisk run. PROVISIONAL running cutoff.',
+          provisional: true,
+        },
+        {
+          symbol: 'sprint',
+          value: '18 km/h',
+          why: 'A true sprint. PROVISIONAL running cutoff.',
+          provisional: true,
+        },
+      ],
+      cite: 'qyne-service/src/workouts/workout-summary.ts',
+    },
+    significance: {
+      why: 'Separates easy running from the hard, fast portions of a session.',
+      limits: [
+        'PROVISIONAL thresholds, not yet defined per sport — FORMULA NEEDED(WORKOUT-SPEED-BANDS).',
+        'GPS runs only.',
+      ],
+    },
+    supply: { band: 'none', health_connect: 'none', apple_health: 'none' },
   },
 ];
 
