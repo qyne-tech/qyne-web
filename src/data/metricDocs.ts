@@ -355,7 +355,7 @@ export const METRIC_DOCS: MetricDoc[] = [
     },
     bands: {
       basis: 'generic',
-      note: 'The inputs are compared with the athlete’s own baseline; the bands themselves are one table for everybody. Both halves of that sentence matter, and the response declares which in its bands-basis field.',
+      note: 'The inputs are compared with the athlete’s own baseline; the bands themselves are one table for everybody. Both halves of that sentence matter, and the response declares which in its bands-basis field. The colours run best to worst — green, amber, red — read from the top. Recovery has three bands, so there is no teal step between green and amber.',
       rows: [
         {
           label: 'Good',
@@ -480,7 +480,7 @@ export const METRIC_DOCS: MetricDoc[] = [
     },
     bands: {
       basis: 'generic',
-      note: 'Deliberately not the recovery thresholds. Recovery asks what state you woke in; energy asks what is left of it now.',
+      note: 'Deliberately not the recovery thresholds. Recovery asks what state you woke in; energy asks what is left of it now. The colours run best to worst — green, teal, amber, red — read from the top, so Optimal is the teal second step and Depleted the red floor.',
       rows: [
         {
           label: 'Fully Charged',
@@ -619,7 +619,7 @@ export const METRIC_DOCS: MetricDoc[] = [
     },
     bands: {
       basis: 'generic',
-      note: 'Anchored on the one measurement the scale itself was anchored on: an ordinary worn day with no training accrues 100-250 TRIMP, which is about 9 of 21, so Moderate has to contain it. Not fitted to the individual athlete.',
+      note: 'Anchored on the one measurement the scale itself was anchored on: an ordinary worn day with no training accrues 100-250 TRIMP, which is about 9 of 21, so Moderate has to contain it. Not fitted to the individual athlete. The colours read from the LOW end, because less strain is better: Light is green, All Out red, with teal and amber between. Green, teal, amber, red is still best to worst — the scale is just read upside down.',
       rows: [
         {
           label: 'All Out',
@@ -750,7 +750,7 @@ export const METRIC_DOCS: MetricDoc[] = [
     },
     bands: {
       basis: 'personal',
-      note: 'The same figure on two athletes therefore means the same thing relative to each of them. This is the opposite of every other band table we serve, and the response declares it.',
+      note: 'The same figure on two athletes therefore means the same thing relative to each of them. This is the opposite of every other band table we serve, and the response declares it. Like strain, the colours read from the LOW end — Rest is green, High red — because less stress is better.',
       rows: [
         {
           label: 'High Stress',
@@ -905,24 +905,24 @@ export const METRIC_DOCS: MetricDoc[] = [
     },
     bands: {
       basis: 'generic',
-      note: 'The thresholds follow the split Fitbit and Garmin publish, with their top two bands merged.',
+      note: 'The thresholds follow the split Fitbit and Garmin publish, with their top two bands merged. The colours are QYNE’s scored scale: green is best, amber in the middle, red worst, read from the top. Three bands, so no teal step.',
       rows: [
         {
           label: 'Good',
           ranges: [{ from: 80, to: 100 }],
-          tone: 'success',
+          tone: 'green',
           meaning: 'A night that did its job.',
         },
         {
           label: 'Moderate',
           ranges: [{ from: 60, to: 79 }],
-          tone: 'warning',
+          tone: 'amber',
           meaning: 'Enough to function on, not enough to build on.',
         },
         {
           label: 'Poor',
           ranges: [{ from: 0, to: 59 }],
-          tone: 'danger',
+          tone: 'red',
           meaning: 'Treat the next day as recovery.',
         },
       ],
