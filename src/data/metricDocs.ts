@@ -2080,6 +2080,241 @@ export const METRIC_DOCS: MetricDoc[] = [
     },
     supply: { band: 'measured', health_connect: 'measured', apple_health: 'measured' },
   },
+  {
+    slug: 'workout-calories',
+    name: 'Workout calories',
+    group: 'fitness',
+    summary: 'Active and total energy for one recorded session.',
+    unit: 'kcal',
+    dependsOn: {
+      figure: "The session's own burn, plus your weight, height, age and sex for the resting part.",
+      bands: 'No bands.',
+    },
+    shown: [
+      'A workout summary: "Total Calories burnt" on a card, and "Active calories" in the details.',
+    ],
+    formula: {
+      expression: 'total = active + (BMR / 1440) x durationMin',
+      terms: [
+        {
+          name: 'active',
+          expression: "the source's own figure for the session",
+          note: 'ASSUMPTION: the source value is the active (exercise) burn. If a source reports a total instead, this would double-count rest; the assumption lives in one place.',
+        },
+        {
+          name: 'BMR (Mifflin-St Jeor)',
+          expression: '10 x weightKg + 6.25 x heightCm - 5 x age + c',
+          note: 'c = +5 for male, -161 for female. kcal/day. An unknown sex has no constant, so total stays empty rather than biased by ~160.',
+        },
+        {
+          name: 'resting over the session',
+          expression: '(BMR / 1440) x durationMin',
+          note: "The day's resting rate, for the minutes the session lasted.",
+        },
+      ],
+      steps: [
+        'Active is shown on its own whenever the source sends a calorie figure.',
+        'Total needs weight, height, age and sex; missing any one, it is left empty, never guessed.',
+        'Avg speed, shown beside it on distance sports, is simply distance / duration.',
+      ],
+      constants: [
+        {
+          symbol: '1440',
+          value: '1440',
+          why: 'Minutes in a day, to turn a daily BMR into a per-minute rate.',
+        },
+        { symbol: 'c (male)', value: '+5', why: 'Mifflin-St Jeor sex constant for men.' },
+        { symbol: 'c (female)', value: '-161', why: 'Mifflin-St Jeor sex constant for women.' },
+      ],
+      cite: 'qyne-service/src/workouts/workout-summary.ts',
+    },
+    significance: {
+      why: "Total is the all-in number a day's energy budget uses; active is what the session itself cost.",
+      limits: [
+        "Both rest on the source's own calorie figure, itself an estimate from heart rate and movement.",
+        'Total is empty until the profile carries weight, height and sex.',
+      ],
+    },
+    supply: { band: 'derived', health_connect: 'derived', apple_health: 'derived' },
+  },
+  {
+    slug: 'workout-strain',
+    name: 'Workout strain',
+    group: 'fitness',
+    summary: 'How hard one session was, on the 0-21 strain scale.',
+    unit: '0-21',
+    dependsOn: {
+      figure:
+        'Your heart rate through the session, against your age-predicted maximum and resting rate.',
+      bands: 'No bands on the session figure.',
+    },
+    shown: ['"Total strain" in a workout\'s details.'],
+    formula: {
+      expression: 'strain = 21 x (1 - e^(-TRIMP / 360))',
+      terms: [
+        {
+          name: 'TRIMP',
+          expression: 'sum over samples of  HRr x k1 x e^(k2 x HRr) x minutes',
+          note: "Banister TRIMP, integrated over the session's own heart-rate samples.",
+        },
+        {
+          name: 'HRr (heart-rate reserve)',
+          expression: '(hr - resting) / (max - resting)',
+          note: 'The fraction of reserve in use. max is Tanaka (see Workout heart-rate zones).',
+        },
+      ],
+      steps: [
+        'Only a session recorded live carries the per-sample heart rate this needs; a workout read from band history has no strain figure.',
+        'The same Banister curve the daily strain uses, so a session and a day sit on one scale.',
+      ],
+      constants: [
+        {
+          symbol: 'k1, k2 (male)',
+          value: '0.64, 1.92',
+          why: 'Banister & Calvert coefficients for the male exponential.',
+        },
+        {
+          symbol: 'k1, k2 (female)',
+          value: '0.86, 1.67',
+          why: 'The female form of the same curve.',
+        },
+        {
+          symbol: '360',
+          value: '360',
+          why: 'The TRIMP that maps to about two-thirds of the 0-21 scale. Saturating, so hard and very hard stay distinguishable.',
+          provisional: true,
+        },
+      ],
+      cite: 'qyne-service/src/workouts/workout-summary.ts',
+    },
+    significance: {
+      why: 'One number for how much a session took out of you, comparable across sports.',
+      limits: [
+        'No figure without a live recording.',
+        'Age-predicted maximum carries about +-10 bpm of error.',
+      ],
+    },
+    supply: { band: 'derived', health_connect: 'none', apple_health: 'none' },
+  },
+  {
+    slug: 'workout-hr-zones',
+    name: 'Workout heart-rate zones',
+    group: 'fitness',
+    summary: 'Time spent in each of the five heart-rate zones.',
+    unit: 'seconds per zone',
+    dependsOn: {
+      figure: 'Your heart rate through the session.',
+      bands: 'The zone edges adjust for your age (maximum) and your resting rate (Z1 floor).',
+    },
+    shown: ['The "Heart Rate Zones" bars, and the Average / Max / Recovery row above them.'],
+    formula: {
+      expression: 'HRmax = 208 - 0.7 x age',
+      terms: [
+        {
+          name: 'Z1 floor',
+          expression: 'resting heart rate',
+          note: 'The recovery zone starts at rest.',
+        },
+        {
+          name: 'Z2-Z5 floors',
+          expression: 'HRmax x zonePct',
+          note: 'Each upper zone starts at a fixed fraction of maximum.',
+        },
+        {
+          name: 'time in a zone',
+          expression: 'sum of the seconds each sample stands for, bucketed by the zone it falls in',
+        },
+      ],
+      steps: [
+        'Maximum is age-predicted by Tanaka, not measured.',
+        'A zone whose floor would fall below the one beneath it collapses to zero width rather than overlapping.',
+        'Only a live recording carries the samples; a band-history workout shows no zones.',
+      ],
+      constants: [
+        {
+          symbol: 'Tanaka',
+          value: '208 - 0.7 x age',
+          why: 'Age-predicted maximum heart rate (Tanaka et al., 2001).',
+        },
+      ],
+      cite: 'qyne-service/src/workouts/workout-summary.ts',
+    },
+    significance: {
+      why: 'Shows where the effort sat: a session mostly in Z2 is endurance, one in Z4-Z5 is intervals.',
+      limits: ['The maximum is predicted from age, so the top zones carry its error.'],
+    },
+    supply: { band: 'derived', health_connect: 'none', apple_health: 'none' },
+  },
+  {
+    slug: 'workout-recovery',
+    name: 'Workout heart-rate recovery',
+    group: 'fitness',
+    summary: 'How fast your heart rate fell at the end of the session.',
+    unit: 'bpm/min',
+    dependsOn: {
+      figure: 'Your heart rate over the last minute of the recording.',
+      bands: 'No bands.',
+    },
+    shown: ['"Recovery" in the row above the zone chart.'],
+    formula: {
+      expression: 'recovery = max(0, hr[end - 60s] - hr[end])',
+      terms: [
+        {
+          name: 'the drop',
+          expression: 'the reading a minute before the last sample, minus the last sample',
+        },
+      ],
+      steps: [
+        'Empty unless the recording runs long enough to hold the minute-long window.',
+        'Clamped at zero, so a session that ended on a surge does not read as negative recovery.',
+      ],
+      constants: [
+        {
+          symbol: 'window',
+          value: '60 s',
+          why: 'Heart-rate recovery is conventionally read over one minute.',
+        },
+      ],
+      cite: 'qyne-service/src/workouts/workout-summary.ts',
+    },
+    significance: {
+      why: 'A faster fall is a marker of better cardiovascular fitness.',
+      limits: [
+        'PROVISIONAL: true recovery is measured from a held cooldown, not inferred from where a recording happened to stop.',
+      ],
+    },
+    supply: { band: 'derived', health_connect: 'none', apple_health: 'none' },
+  },
+  {
+    slug: 'workout-load',
+    name: 'Workout training load',
+    group: 'fitness',
+    summary: 'A 0-100 reading of how demanding the session was.',
+    unit: '0-100',
+    dependsOn: { figure: 'Not finalised.', bands: 'No bands.' },
+    shown: ['The "Physiological Load" bar on a workout summary.'],
+    formula: {
+      expression: 'provisional placeholder',
+      steps: [
+        'PROVISIONAL: the real load formula is not decided yet.',
+        'A stable placeholder is shown per workout — the same value every time the screen opens, not a figure that changes on refresh — and the response flags it as provisional so nothing treats it as measured.',
+      ],
+      constants: [
+        {
+          symbol: 'load',
+          value: 'placeholder',
+          why: 'FORMULA NEEDED(WORKOUT-LOAD). Stands in until the load model is defined.',
+          provisional: true,
+        },
+      ],
+      cite: 'qyne-service/src/workouts/workout-summary.ts',
+    },
+    significance: {
+      why: 'Will summarise session demand on one bar once the formula lands.',
+      limits: ['Not a real figure yet. Do not read anything into its value.'],
+    },
+    supply: { band: 'derived', health_connect: 'derived', apple_health: 'derived' },
+  },
 ];
 
 /** The metrics of one group, in page order. */
