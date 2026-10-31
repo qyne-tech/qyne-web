@@ -2315,6 +2315,116 @@ export const METRIC_DOCS: MetricDoc[] = [
     },
     supply: { band: 'derived', health_connect: 'derived', apple_health: 'derived' },
   },
+  {
+    slug: 'workout-laps',
+    name: 'Workout laps',
+    group: 'fitness',
+    summary: 'Per-kilometre splits of a GPS session: time, pace and heart rate.',
+    unit: 'per km',
+    dependsOn: {
+      figure: "The phone's GPS track, each point carrying its own time.",
+      bands: 'No bands.',
+    },
+    shown: ['The lap table on a GPS run: distance, time, pace and HR per lap.'],
+    formula: {
+      expression: 'distance accumulates by great-circle; a lap closes at each 1 km',
+      terms: [
+        {
+          name: 'segment distance',
+          expression: 'haversine(point_i, point_{i+1})',
+          note: 'Great-circle metres between consecutive GPS points.',
+        },
+        {
+          name: 'kilometre time',
+          expression: 't_i + (mark - cumulative) / segment x (t_{i+1} - t_i)',
+          note: 'The exact moment the running total crosses a kilometre, interpolated across the segment that straddles it — so a lap lands on the kilometre, not on the next recorded point.',
+        },
+        {
+          name: 'lap pace',
+          expression: 'lap seconds / lap km',
+        },
+        {
+          name: 'lap HR',
+          expression: 'mean of the HR samples whose time falls inside the lap',
+        },
+      ],
+      steps: [
+        "Needs a time on each GPS point. GPS is event-driven and accuracy-gated, so a point's time cannot be read from its index the way a uniformly-sampled HR point's can; a track without per-point time gives distance only, and no laps.",
+        'The final, partial kilometre is reported as its own lap.',
+        'A GPS run with no band still has laps — pace and distance are there, the per-lap HR is empty.',
+      ],
+      constants: [
+        {
+          symbol: 'lap',
+          value: '1 km',
+          why: 'The split the lap list and the pace column are read in.',
+        },
+      ],
+      cite: 'qyne-service/src/workouts/workout-summary.ts',
+    },
+    significance: {
+      why: 'Shows how pace held or faded across a run, kilometre by kilometre.',
+      limits: [
+        'GPS runs only; an indoor session has no track.',
+        'Accuracy follows the GPS fix quality.',
+      ],
+    },
+    supply: { band: 'none', health_connect: 'none', apple_health: 'none' },
+  },
+  {
+    slug: 'workout-speed-bands',
+    name: 'Workout speed bands',
+    group: 'fitness',
+    summary: 'Time spent running fast and sprinting, from the GPS track.',
+    unit: 'seconds',
+    dependsOn: {
+      figure: "The phone's GPS track, each point carrying its own time.",
+      bands: 'Fixed speed thresholds (provisional).',
+    },
+    shown: ['"High speed running time" and "Sprinting time" on a GPS run.'],
+    formula: {
+      expression: 'segment speed = segment distance / segment time',
+      terms: [
+        {
+          name: 'high-speed seconds',
+          expression: 'sum of segment seconds where speed >= 10 km/h',
+        },
+        {
+          name: 'sprint seconds',
+          expression: 'sum of segment seconds where speed >= 18 km/h',
+          note: 'A subset of high-speed: a sprinting segment counts toward both.',
+        },
+      ],
+      steps: [
+        'Each GPS segment is a pair of consecutive points; its speed is its distance over its own elapsed time.',
+        'Segments too close in time to time a speed from are dropped, so a pair milliseconds apart cannot report a speed no runner reaches.',
+        'Needs per-point time, like laps; without it there are no speed bands.',
+      ],
+      constants: [
+        {
+          symbol: 'high-speed',
+          value: '10 km/h',
+          why: 'A brisk run. PROVISIONAL running cutoff.',
+          provisional: true,
+        },
+        {
+          symbol: 'sprint',
+          value: '18 km/h',
+          why: 'A true sprint. PROVISIONAL running cutoff.',
+          provisional: true,
+        },
+      ],
+      cite: 'qyne-service/src/workouts/workout-summary.ts',
+    },
+    significance: {
+      why: 'Separates easy running from the hard, fast portions of a session.',
+      limits: [
+        'PROVISIONAL thresholds, not yet defined per sport — FORMULA NEEDED(WORKOUT-SPEED-BANDS).',
+        'GPS runs only.',
+      ],
+    },
+    supply: { band: 'none', health_connect: 'none', apple_health: 'none' },
+  },
 ];
 
 /** The metrics of one group, in page order. */
