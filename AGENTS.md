@@ -11,5 +11,8 @@ Do not restate them here.
 
 ## Repo-specific rules (qyne-web — marketing site)
 - Vite + React + Tailwind. **Marketing site: no Supabase, no auth. The one backend call is the public `GET /articles` catalogue via `apiUrl()`.** "Log in"/"Sign up" hand off to the app via `appUrl()` (see `src/lib/site.ts`).
+- **Exception, dev only: the article CMS at `/cms`.** It must never ship or reach staging/production until the service's admin guard lands (CMS-S1): keep the route behind `import.meta.env.DEV`, keep its calls on the `/cms-api` proxy to a local service, and send every CMS request through `cmsRequest` in `src/lib/cms-api.ts` (where auth will be added).
+- Article bodies are sanitised HTML from the service: render them with `RichText`, never as text and never with HTML from anywhere else.
+- Tests: Vitest, colocated `*.spec.ts`, run with `npm test` (and in CI).
 - Use the shared styling primitives and design tokens in `src/`; never hardcode colors.
 - SEO matters: keep per-page `<Seo>` (canonical/OG/Twitter) and the sitemap current when adding/removing routes.

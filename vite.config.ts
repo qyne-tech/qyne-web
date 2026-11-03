@@ -1,9 +1,9 @@
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [react(), tailwindcss()],
   server: {
     proxy: {
@@ -13,6 +13,14 @@ export default defineConfig({
         target: 'https://api.staging.qyne.one',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
+      },
+      // The article CMS's reads and writes (`src/lib/cms-api.ts`). A local
+      // qyne-service only: its write routes are unguarded until CMS-S1, so they
+      // must never be pointed at staging or production.
+      '/cms-api': {
+        target: loadEnv(mode, process.cwd(), '').CMS_API_TARGET || 'http://localhost:3000',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/cms-api/, ''),
       },
     },
   },
@@ -37,4 +45,4 @@ export default defineConfig({
       },
     },
   },
-})
+}))

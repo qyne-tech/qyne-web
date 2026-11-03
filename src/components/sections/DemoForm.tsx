@@ -1,6 +1,7 @@
 import { useState, type ChangeEvent, type FormEvent, type ReactNode } from 'react'
 import { ArrowRight, Check, ChevronDown } from 'lucide-react'
 import { Button } from '../primitives/Button'
+import { fieldClass } from '../primitives/field-styles'
 import { DEMO_ROLES, SITE } from '../../lib/site'
 
 interface FormState {
@@ -11,9 +12,6 @@ interface FormState {
 }
 
 const EMPTY: FormState = { email: '', academy: '', city: '', role: DEMO_ROLES[0] }
-
-const fieldClass =
-  'h-11 w-full rounded-md border border-border bg-surface-2 px-3.5 text-sm text-ink placeholder:text-faint transition-colors focus:border-primary focus:outline-none'
 
 function Field({
   label,

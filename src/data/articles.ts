@@ -126,6 +126,11 @@ export function categoryBySlug(slug: string | null | undefined): Category | unde
   return CATEGORIES.find((c) => c.slug === slug);
 }
 
+/** The category for this service metric key, or undefined. */
+export function categoryByMetric(metric: string): Category | undefined {
+  return CATEGORIES.find((c) => c.metric === metric);
+}
+
 /** The category an article belongs to. */
 export function categoryOf(article: Article): Category | undefined {
   return categoryBySlug(article.category);

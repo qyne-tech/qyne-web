@@ -1,4 +1,4 @@
-import { lazy } from 'react';
+import { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { RootLayout } from './components/layout/RootLayout';
 import Home from './pages/Home';
@@ -28,9 +28,28 @@ const Privacy = lazy(() => import('./pages/Privacy'));
 const Security = lazy(() => import('./pages/Security'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
+/*
+ * The article CMS, in `npm run dev` only. qyne-service's article write routes
+ * are unguarded until the admin guard lands (CMS-S1), so the CMS must not ship:
+ * `import.meta.env.DEV` is `false` in a production build, which drops both the
+ * route and its chunk. Outside RootLayout: the CMS renders the site header
+ * itself but not the footer, and the nav has no link to it.
+ */
+const Cms = import.meta.env.DEV ? lazy(() => import('./pages/Cms')) : null;
+
 export default function App() {
   return (
     <Routes>
+      {Cms && (
+        <Route
+          path="cms"
+          element={
+            <Suspense fallback={null}>
+              <Cms />
+            </Suspense>
+          }
+        />
+      )}
       <Route element={<RootLayout />}>
         <Route index element={<Home />} />
         <Route path="how-it-works" element={<HowItWorks />} />

@@ -43,7 +43,8 @@ export function appUrl(path = ''): string {
 
 /**
  * URL of qyne-service, the QYNE API. The site reads one thing from it: the
- * public, unauthenticated article catalogue (`/articles`). Nothing else.
+ * public, unauthenticated article catalogue (`/articles`). Nothing else. (The
+ * dev-only article CMS does not use this; see `lib/cms-api.ts`.)
  *
  * Resolution order:
  *   1. `VITE_API_URL` build var (set this in production, e.g. https://api.qyne.one).
