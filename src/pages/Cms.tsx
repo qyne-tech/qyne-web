@@ -177,7 +177,8 @@ export default function Cms() {
                 <p className="mt-10 text-sm text-muted">Loading articles…</p>
               ) : shown.status === 'error' ? (
                 <p className="mt-10 text-sm text-muted">
-                  The articles could not be loaded. Is qyne-service running locally?{' '}
+                  The articles could not be loaded.
+                  {import.meta.env.DEV && ' Is qyne-service running locally?'}{' '}
                   <button
                     type="button"
                     onClick={() => void reloadLists()}

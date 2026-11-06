@@ -1,7 +1,8 @@
 # Deploy the SPA: build, sync to S3, invalidate CloudFront.
 #   develop → staging   (vars: AWS_DEPLOY_ROLE_ARN, WEB_BUCKET, WEB_DISTRIBUTION_ID,
-#                        VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, VITE_API_URL)
-#   main    → production (same names, PROD_ prefixed)
+#                        VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, VITE_API_URL,
+#                        VITE_ENABLE_CMS)
+#   main    → production (same names, PROD_ prefixed; no CMS flag)
 # Keyless via GitHub OIDC. Each job no-ops until its branch's role var is set.
 name: deploy
 
@@ -32,6 +33,9 @@ jobs:
       # Optional; unset derives it from the host (see apiUrl). Production never
       # falls back to the staging var, so a prod build cannot read staging.
       VITE_API_URL: ${{ github.ref_name == 'main' && vars.PROD_VITE_API_URL || github.ref_name != 'main' && vars.VITE_API_URL || '' }}
+      # 'true' builds the article CMS into staging. Never production: main
+      # always gets '', whatever the vars say.
+      VITE_ENABLE_CMS: ${{ github.ref_name != 'main' && vars.VITE_ENABLE_CMS || '' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

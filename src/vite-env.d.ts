@@ -13,6 +13,12 @@ interface ImportMetaEnv {
    * production, e.g. https://api.qyne.one.
    */
   readonly VITE_API_URL?: string
+  /**
+   * `'true'` builds the article CMS at /cms into a deployed site, talking to
+   * `VITE_API_URL` / the host's API. Staging only: the deploy workflow forces
+   * it off for production. Always on in `npm run dev`.
+   */
+  readonly VITE_ENABLE_CMS?: string
 }
 
 interface ImportMeta {
