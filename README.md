@@ -39,6 +39,7 @@ npm run dev     # Vite dev server
 npm run build   # tsc -b && vite build (type-checks, then bundles)
 npm run preview # serve the production build locally
 npm run lint    # eslint
+npm test        # vitest (unit tests, colocated *.spec.ts)
 ```
 
 ### Environment
@@ -50,12 +51,29 @@ the host.
 |---|---|
 | `VITE_APP_URL` | The QYNE app that "Log in" / "Sign up" hand off to (`appUrl()`) |
 | `VITE_API_URL` | qyne-service, read only for the public article catalogue (`apiUrl()`) |
+| `CMS_API_TARGET` | Dev only: the local qyne-service the article CMS talks to (default `http://localhost:3000`) |
 
 The articles (`/articles`, `/articles/:slug`) are the site's one backend read:
 `GET /articles?metric=…` from qyne-service, unauthenticated. In `npm run dev`
 the calls go to `/api`, which Vite proxies to the staging API, so no CORS setup
 is needed locally. A deployed build calls the API directly, so its origin must
-be in the service's `CORS_ORIGINS`.
+be in the service's `CORS_ORIGINS`. An article's `body` is HTML the service has
+already sanitised, rendered by `RichText` and styled by
+[`src/styles/article-body.css`](src/styles/article-body.css).
+
+### Article CMS (`/cms`, dev only)
+
+`npm run dev` also serves `/cms`, where articles are added, edited, published,
+reordered and deleted, by metric. It is **not in production builds**: the
+service's article write routes are unguarded until the admin guard lands
+(CMS-S1), so the route exists only when `import.meta.env.DEV` is true.
+
+The CMS calls `/cms-api`, which Vite proxies to `CMS_API_TARGET` — a qyne-service
+running on your machine. Never point it at staging or production, and make sure
+the local service's own `DATABASE_URL` is a local database too: its writes land
+wherever that points. Every CMS request goes through `cmsRequest` in
+[`src/lib/cms-api.ts`](src/lib/cms-api.ts), the one place the admin's auth
+header will be added.
 
 Vite only exposes vars prefixed `VITE_` to the client. `.env` is gitignored;
 `.env.example` is tracked. The rest of the marketing site is static.
@@ -88,6 +106,7 @@ src/
 | Company | `About`, `Support` |
 | Legal | `Privacy`, `Terms`, `Security` |
 | Auth (Supabase OTP) | `Login`, `Signup` |
+| Dev only | `Cms` (`/cms`: site header, no footer, no nav link — type the URL) |
 | Fallback | `NotFound` |
 
 ### Styling
@@ -115,9 +134,10 @@ Shared styling helpers:
 | `npm run build` | Type-check + production bundle (the CI gate) |
 | `npm run preview` | Serve the built output |
 | `npm run lint` | ESLint |
+| `npm test` | Vitest unit tests (`src/**/*.spec.ts`) |
 | `npm run prepare` | Wires `core.hooksPath` (runs automatically on install) |
 
-CI runs lint (currently non-blocking) and build on every PR into
+CI runs lint (currently non-blocking), tests and build on every PR into
 `develop`/`main`.
 
 ## Workflow

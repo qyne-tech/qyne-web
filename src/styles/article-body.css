@@ -1,0 +1,92 @@
+/* ----------------------------------------------------------------------------
+   Article body — the HTML qyne-service stores and serves for an article,
+   limited to p, br, h2, h3, strong, b, em, i, ul, ol, li, blockquote, a and
+   img (ADR-0010). Tailwind's reset strips these elements bare, so they are
+   styled here, from the design tokens only.
+
+   Plain CSS on purpose: the public article page loads it through index.css,
+   and the CMS preview injects the same file into a sandboxed frame.
+   ---------------------------------------------------------------------------- */
+.article-body {
+  color: var(--color-muted);
+  font-size: var(--text-lead);
+  line-height: var(--text-lead--line-height);
+}
+
+.article-body > * + * {
+  margin-top: 1.25rem;
+}
+
+.article-body h2,
+.article-body h3 {
+  color: var(--color-ink);
+  font-weight: 500;
+}
+
+.article-body h2 {
+  margin-top: 2.5rem;
+  font-size: var(--text-h3);
+  line-height: var(--text-h3--line-height);
+}
+
+.article-body h3 {
+  margin-top: 2rem;
+  font-size: var(--text-lead);
+  line-height: var(--text-lead--line-height);
+}
+
+.article-body strong,
+.article-body b {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+
+.article-body em,
+.article-body i {
+  font-style: italic;
+}
+
+.article-body a {
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.article-body a:hover {
+  color: var(--color-primary-light);
+}
+
+.article-body ul,
+.article-body ol {
+  padding-left: 1.5rem;
+}
+
+.article-body ul {
+  list-style: disc;
+}
+
+.article-body ol {
+  list-style: decimal;
+}
+
+.article-body li + li {
+  margin-top: 0.5rem;
+}
+
+.article-body li::marker {
+  color: var(--color-faint);
+}
+
+.article-body blockquote {
+  border-left: 2px solid var(--color-primary);
+  padding-left: 1.25rem;
+  color: var(--color-ink);
+}
+
+.article-body img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+}

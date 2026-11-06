@@ -2,6 +2,7 @@ import { Link, Navigate, useParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { Section } from '../components/primitives/Container';
 import { Eyebrow } from '../components/primitives/Eyebrow';
+import { RichText } from '../components/primitives/RichText';
 import { Seo } from '../components/primitives/Seo';
 import { categoryOf, type ArticleDetail } from '../data/articles';
 import { useArticle, useArticles } from '../hooks/useArticles';
@@ -64,13 +65,7 @@ function ArticleBody({ article }: { article: ArticleDetail }) {
           <h1 className="mt-6 text-h1 text-ink">{article.title}</h1>
 
           {article.body ? (
-            <div className="mt-10 flex flex-col gap-5">
-              {article.body.split(/\n{2,}/).map((paragraph, i) => (
-                <p key={i} className="text-lead text-muted">
-                  {paragraph}
-                </p>
-              ))}
-            </div>
+            <RichText html={article.body} className="mt-10" />
           ) : article.url ? (
             <div className="mt-10 rounded-lg border border-border bg-surface p-8 text-center">
               <Eyebrow tone="muted">{article.source}</Eyebrow>

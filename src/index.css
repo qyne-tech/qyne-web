@@ -3,6 +3,9 @@
 /* Design language — all tokens (color, type, spacing, radii, motion, …). */
 @import './styles/theme.css';
 
+/* The HTML body of an article (public page and CMS preview). */
+@import './styles/article-body.css';
+
 /* ----------------------------------------------------------------------------
    Base — element defaults derived from the design tokens above.
    ---------------------------------------------------------------------------- */
