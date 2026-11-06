@@ -52,6 +52,7 @@ the host.
 | `VITE_APP_URL` | The QYNE app that "Log in" / "Sign up" hand off to (`appUrl()`) |
 | `VITE_API_URL` | qyne-service, read only for the public article catalogue (`apiUrl()`) |
 | `CMS_API_TARGET` | Dev only: the local qyne-service the article CMS talks to (default `http://localhost:3000`) |
+| `VITE_ENABLE_CMS` | `true` builds the article CMS into a deployed site. Staging only: the deploy workflow forces it off on `main` |
 
 The articles (`/articles`, `/articles/:slug`) are the site's one backend read:
 `GET /articles?metric=…` from qyne-service, unauthenticated. In `npm run dev`
@@ -61,17 +62,20 @@ be in the service's `CORS_ORIGINS`. An article's `body` is HTML the service has
 already sanitised, rendered by `RichText` and styled by
 [`src/styles/article-body.css`](src/styles/article-body.css).
 
-### Article CMS (`/cms`, dev only)
+### Article CMS (`/cms`, dev and staging)
 
-`npm run dev` also serves `/cms`, where articles are added, edited, published,
-reordered and deleted, by metric. It is **not in production builds**: the
-service's article write routes are unguarded until the admin guard lands
-(CMS-S1), so the route exists only when `import.meta.env.DEV` is true.
+`/cms` is where articles are added, edited, published, reordered and deleted,
+by metric. It is served by `npm run dev`, and built into staging when the
+`VITE_ENABLE_CMS` Actions variable is `true`. It is **never in production
+builds**: the deploy workflow forces the flag off on `main`, and any build
+without it contains none of the CMS's code. Until the admin guard lands
+(CMS-S1) the service's article write routes are open, so anyone who finds
+`staging.qyne.one/cms` can change staging's articles.
 
-The CMS calls `/cms-api`, which Vite proxies to `CMS_API_TARGET` — a qyne-service
-running on your machine. Never point it at staging or production, and make sure
-the local service's own `DATABASE_URL` is a local database too: its writes land
-wherever that points. Every CMS request goes through `cmsRequest` in
+In dev the CMS calls `/cms-api`, which Vite proxies to `CMS_API_TARGET` — a
+qyne-service running on your machine. Make sure the local service's own
+`DATABASE_URL` is a local database too: its writes land wherever that points.
+On staging it calls the staging API directly (`apiUrl()`). Every CMS request goes through `cmsRequest` in
 [`src/lib/cms-api.ts`](src/lib/cms-api.ts), the one place the admin's auth
 header will be added.
 
@@ -106,7 +110,7 @@ src/
 | Company | `About`, `Support` |
 | Legal | `Privacy`, `Terms`, `Security` |
 | Auth (Supabase OTP) | `Login`, `Signup` |
-| Dev only | `Cms` (`/cms`: site header, no footer, no nav link — type the URL) |
+| Dev and staging | `Cms` (`/cms`: site header, no footer, no nav link — type the URL) |
 | Fallback | `NotFound` |
 
 ### Styling
