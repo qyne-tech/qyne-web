@@ -1293,7 +1293,7 @@ export const METRIC_DOCS: MetricDoc[] = [
       figure:
         'Nothing we apply. The figure is the source’s own or a percentile of your own stream.',
       bands:
-        'No bands. On the Recovery screen it is read against your own 30-day baseline, which is where age and fitness enter.',
+        'Your own four-week median. Every threshold is a percentage of it, so the same bpm bands differently for two athletes — which is the point, because absolute resting heart rate varies with age and fitness.',
     },
     shown: [
       'A daily figure with a trend, and a contributor row on the Recovery screen.',
@@ -1351,6 +1351,38 @@ export const METRIC_DOCS: MetricDoc[] = [
         },
       ],
       cite: 'qyne-service src/wearables/metrics/metrics.service.ts',
+    },
+    bands: {
+      basis: 'personal',
+      note: 'Read against your own four-week median, not a population range, and the other way up from HRV: a resting heart rate RISING is the bad direction. The percentages below are of that median, so a drawing bound of 80% at the good end and 140% at the bad end only exists to give the bar somewhere to stop — the bands themselves are open at both ends.',
+      rows: [
+        {
+          label: 'Good',
+          ranges: [{ from: 80, to: 107 }],
+          rangeLabel: 'at or below 107%',
+          tone: 'green',
+          meaning: 'At or near your own normal.',
+        },
+        {
+          label: 'Moderate',
+          ranges: [{ from: 107, to: 115 }],
+          tone: 'teal',
+          meaning: 'Above your normal, and ordinary after a hard day.',
+        },
+        {
+          label: 'Poor',
+          ranges: [{ from: 115, to: 120 }],
+          tone: 'amber',
+          meaning: 'Well above your normal. Worth a reason.',
+        },
+        {
+          label: 'Very poor',
+          ranges: [{ from: 120, to: 140 }],
+          rangeLabel: 'above 120%',
+          tone: 'red',
+          meaning: 'A fifth above your own median, which is a stronger signal than merely elevated.',
+        },
+      ],
     },
     significance: {
       why: 'Resting heart rate is the cheapest signal of accumulated fatigue or illness. A few beats above your normal, held for days, is worth more attention than one bad session. It is also a quarter of the recovery score and the denominator of heart-rate reserve, so it moves strain and VO₂ max too.',
