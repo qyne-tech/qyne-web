@@ -14,9 +14,9 @@ export default defineConfig(({ mode }) => ({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
       },
-      // The article CMS's reads and writes (`src/lib/cms-api.ts`). A local
-      // qyne-service only: its write routes are unguarded until CMS-S1, so they
-      // must never be pointed at staging or production.
+      // The article CMS's reads and writes in dev (`src/lib/cms-api.ts`), to a
+      // local qyne-service by default. Staging builds with VITE_ENABLE_CMS call
+      // the staging API directly instead; production never has the CMS.
       '/cms-api': {
         target: loadEnv(mode, process.cwd(), '').CMS_API_TARGET || 'http://localhost:3000',
         changeOrigin: true,

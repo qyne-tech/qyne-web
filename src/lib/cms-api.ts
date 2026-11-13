@@ -2,10 +2,14 @@
  * The article CMS's calls to qyne-service: the authoring list (drafts
  * included) and every write. Each request goes through `cmsRequest`, the one
  * place the admin's credentials will be attached once the service guards these
- * routes (CMS-S1). Until then they are open, so the CMS only runs in
- * `npm run dev` and only talks to a local service, through the `/cms-api`
- * proxy (see vite.config.ts). It never reaches staging or production.
+ * routes (CMS-S1).
+ *
+ * Where it runs: `npm run dev`, talking to a local service through the
+ * `/cms-api` proxy (see vite.config.ts); and staging builds made with
+ * `VITE_ENABLE_CMS=true`, talking to the staging API via `apiUrl()`. The
+ * deploy workflow forces the flag off for production.
  */
+import { apiUrl } from './site';
 
 /** The service's metric keys, in the order the app and the site list them. */
 export const ARTICLE_METRICS = [
@@ -70,7 +74,14 @@ export interface ArticleUpdate {
   thumbnailUrl?: string | null;
 }
 
-const CMS_BASE = '/cms-api';
+/** The local proxy in dev; the deployment's API (staging) in an enabled build. */
+function cmsBase(): string {
+  return import.meta.env.DEV ? '/cms-api' : apiUrl();
+}
+
+const UNREACHABLE = import.meta.env.DEV
+  ? 'Could not reach qyne-service. Is it running locally?'
+  : 'Could not reach qyne-service.';
 
 const TOO_MANY_REQUESTS = 'Too many requests, try again shortly';
 
@@ -92,13 +103,13 @@ async function cmsRequest<T>(method: string, path: string, body?: unknown): Prom
 
   let response: Response;
   try {
-    response = await fetch(`${CMS_BASE}${path}`, {
+    response = await fetch(`${cmsBase()}${path}`, {
       method,
       headers,
       body: body === undefined ? undefined : JSON.stringify(body),
     });
   } catch {
-    throw new CmsApiError(0, 'Could not reach qyne-service. Is it running locally?');
+    throw new CmsApiError(0, UNREACHABLE);
   }
 
   if (!response.ok) throw new CmsApiError(response.status, await errorMessage(response));

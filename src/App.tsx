@@ -29,13 +29,16 @@ const Security = lazy(() => import('./pages/Security'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 /*
- * The article CMS, in `npm run dev` only. qyne-service's article write routes
- * are unguarded until the admin guard lands (CMS-S1), so the CMS must not ship:
- * `import.meta.env.DEV` is `false` in a production build, which drops both the
- * route and its chunk. Outside RootLayout: the CMS renders the site header
- * itself but not the footer, and the nav has no link to it.
+ * The article CMS: in `npm run dev`, and in builds made with
+ * `VITE_ENABLE_CMS=true` (staging only; the deploy workflow forces it off on
+ * `main`). Both are replaced at build time, so any other build drops the route
+ * and its chunk. Outside RootLayout: the CMS renders the site header itself
+ * but not the footer, and the nav has no link to it.
  */
-const Cms = import.meta.env.DEV ? lazy(() => import('./pages/Cms')) : null;
+const Cms =
+  import.meta.env.DEV || import.meta.env.VITE_ENABLE_CMS === 'true'
+    ? lazy(() => import('./pages/Cms'))
+    : null;
 
 export default function App() {
   return (

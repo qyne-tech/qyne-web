@@ -55,6 +55,7 @@ beforeEach(() => {
 afterEach(() => {
   fetchMock.mockReset();
   vi.unstubAllGlobals();
+  vi.unstubAllEnvs();
 });
 
 describe('requests', () => {
@@ -66,6 +67,14 @@ describe('requests', () => {
       method: 'GET',
       body: undefined,
     });
+  });
+
+  it('calls the deployment API directly outside dev (a staging build)', async () => {
+    vi.stubEnv('DEV', false);
+    vi.stubEnv('VITE_API_URL', 'https://api.staging.qyne.one');
+    respond(200, []);
+    await listAdminArticles('sleep');
+    expect(sentRequest().url).toBe('https://api.staging.qyne.one/articles/admin?metric=sleep');
   });
 
   it('lists every metric when none is given', async () => {
