@@ -26,6 +26,7 @@ export const ARTICLE_METRICS = [
   'steps',
   'workouts',
   'recovery',
+  'energy',
 ] as const;
 
 export type ArticleMetric = (typeof ARTICLE_METRICS)[number];

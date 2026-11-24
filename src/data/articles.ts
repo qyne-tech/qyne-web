@@ -100,6 +100,12 @@ export const CATEGORIES: Category[] = [
     label: 'Recovery',
     blurb: 'Readiness, energy and deciding whether to push today.',
   },
+  {
+    slug: 'energy',
+    metric: 'energy',
+    label: 'Energy',
+    blurb: 'How much you have in the tank, and what drains or restores it.',
+  },
 ];
 
 /** One entry in a reading list, as `GET /articles` returns it plus its site category. */
